@@ -20,7 +20,7 @@ type FLOGI struct {
 }
 
 func (s *FLOGI) UnmarshalBinary(b []byte) error {
-	if len(b) < 116 {
+	if len(b) < 112 {
 		return io.ErrUnexpectedEOF
 	}
 

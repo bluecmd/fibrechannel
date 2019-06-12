@@ -115,12 +115,13 @@ type Frame struct {
 	RXID ExchangeID
 
 	// TODO(bluecmd): Optional fields
+	// TODO(bluecmd): Parameters
 
 	Payload []byte
 }
 
 func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
-	if len(b) < 20 {
+	if len(b) < 24 {
 		return io.ErrUnexpectedEOF
 	}
 	// FC Frames are always 4-byte aligned
@@ -173,7 +174,8 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 		f.Priority = &p
 	}
 
-	b = b[20:]
+	// TODO: Parameters
+	b = b[24:]
 
 	if f.DFCtl.HasESP() {
 		return fmt.Errorf("ESP is not implemented")

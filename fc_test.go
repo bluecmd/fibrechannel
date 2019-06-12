@@ -22,17 +22,17 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 		},
 		{
 			desc: "short buffer",
-			b:    bytes.Repeat([]byte{0}, 13),
+			b:    bytes.Repeat([]byte{0}, 12),
 			err:  io.ErrUnexpectedEOF,
 		},
 		{
 			desc: "normal frame - csctl enabled",
-			b:    bytes.Repeat([]byte{0}, 20),
+			b:    bytes.Repeat([]byte{0}, 24),
 			f:    &Frame{CSCtl: new(ClassControl), Payload: []byte{}},
 		},
 		{
 			desc: "invalid size - not a 4b multiple",
-			b:    bytes.Repeat([]byte{0}, 21),
+			b:    bytes.Repeat([]byte{0}, 25),
 			err:  io.ErrUnexpectedEOF,
 		},
 	}
