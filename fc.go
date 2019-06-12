@@ -27,6 +27,21 @@ const (
 	SOFn2 = 0x6
 	SOFn3 = 0x7
 	SOFc4 = 0x8
+
+	TypeBLS      = 0x00
+	TypeELS      = 0x01
+	TypeLLCSNAP  = 0x04
+	TypeIP       = 0x05
+	TypeFCP      = 0x08
+	TypeGPP      = 0x09
+	TypeSBToCU   = 0x1B // FICON / FC-SB-3: Control Unit -> Channel
+	TypeSBFromCU = 0x1C // FICON / FC-SB-3: Channel -> Control Unit
+	TypeFCCT     = 0x20
+	TypeSWILS    = 0x22
+	TypeAL       = 0x23
+	TypeSNMP     = 0x24
+	TypeSPINFAB  = 0xEE
+	TypeDIAG     = 0xEF
 )
 
 var (
