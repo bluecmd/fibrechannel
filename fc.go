@@ -75,7 +75,7 @@ type Frame struct {
 	// it shall be unidentified (i.e., it shall have a single Nx_Port for which
 	// the N_Port_ID is 00 00 00h).
 	Destination Address
-	Source Address
+	Source      Address
 
 	Type Type
 
@@ -90,7 +90,6 @@ type Frame struct {
 	// The SEQ_CNT of each subsequent Data frame in the Sequence shall be
 	// incremented by one.
 	SeqID SequenceID
-
 
 	DFCtl DataFieldControl
 
@@ -124,50 +123,50 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 		return io.ErrUnexpectedEOF
 	}
 	// FC Frames are always 4-byte aligned
-	if len(b) % 4 != 0 {
+	if len(b)%4 != 0 {
 		return io.ErrUnexpectedEOF
 	}
 
-	if err := f.RCtl.UnmarshalBinary(b[0]); err != nil{
+	if err := f.RCtl.UnmarshalBinary(b[0]); err != nil {
 		return err
 	}
-	if err := f.Destination.UnmarshalBinary(b[1:4]); err != nil{
+	if err := f.Destination.UnmarshalBinary(b[1:4]); err != nil {
 		return err
 	}
-	if err := f.Source.UnmarshalBinary(b[5:8]); err != nil{
+	if err := f.Source.UnmarshalBinary(b[5:8]); err != nil {
 		return err
 	}
-	if err := f.Type.UnmarshalBinary(b[8]); err != nil{
+	if err := f.Type.UnmarshalBinary(b[8]); err != nil {
 		return err
 	}
-	if err := f.FCtl.UnmarshalBinary(b[9:12]); err != nil{
+	if err := f.FCtl.UnmarshalBinary(b[9:12]); err != nil {
 		return err
 	}
-	if err := f.SeqID.UnmarshalBinary(b[12]); err != nil{
+	if err := f.SeqID.UnmarshalBinary(b[12]); err != nil {
 		return err
 	}
-	if err := f.DFCtl.UnmarshalBinary(b[13]); err != nil{
+	if err := f.DFCtl.UnmarshalBinary(b[13]); err != nil {
 		return err
 	}
-	if err := f.SeqCount.UnmarshalBinary(b[14:16]); err != nil{
+	if err := f.SeqCount.UnmarshalBinary(b[14:16]); err != nil {
 		return err
 	}
-	if err := f.OXID.UnmarshalBinary(b[16:18]); err != nil{
+	if err := f.OXID.UnmarshalBinary(b[16:18]); err != nil {
 		return err
 	}
-	if err := f.RXID.UnmarshalBinary(b[18:20]); err != nil{
+	if err := f.RXID.UnmarshalBinary(b[18:20]); err != nil {
 		return err
 	}
 
 	if f.FCtl.CSCtlEnabled() {
 		var cc ClassControl
-		if err := cc.UnmarshalBinary(b[4]); err != nil{
+		if err := cc.UnmarshalBinary(b[4]); err != nil {
 			return err
 		}
 		f.CSCtl = &cc
 	} else {
 		var p Priority
-		if err := p.UnmarshalBinary(b[4]); err != nil{
+		if err := p.UnmarshalBinary(b[4]); err != nil {
 			return err
 		}
 		f.Priority = &p
@@ -198,7 +197,7 @@ func (s *FrameControl) UnmarshalBinary(b []byte) error {
 }
 
 func (s *FrameControl) CSCtlEnabled() bool {
-	return *s & 0x20000 == 0
+	return *s&0x20000 == 0
 
 }
 
@@ -223,11 +222,11 @@ func (s *DataFieldControl) UnmarshalBinary(b byte) error {
 }
 
 func (s *DataFieldControl) HasESP() bool {
-	return *s & 0x40 != 0
+	return *s&0x40 != 0
 }
 
 func (s *DataFieldControl) HasNetworkHeader() bool {
-	return *s & 0x20 != 0
+	return *s&0x20 != 0
 }
 
 func (s *DataFieldControl) DeviceHeaderSize() int {
