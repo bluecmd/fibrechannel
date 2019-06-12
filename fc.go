@@ -3,6 +3,7 @@ package fibrechannel
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -171,7 +172,18 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 		}
 		f.Priority = &p
 	}
-	// TODO(bluecmd): CsCtl / Priority
+
+	b = b[20:]
+
+	if f.DFCtl.HasESP() {
+		return fmt.Errorf("ESP is not implemented")
+	}
+	if f.DFCtl.HasNetworkHeader() {
+		return fmt.Errorf("Network header is not implemented")
+	}
+
+	f.Payload = make([]byte, len(b))
+	copy(f.Payload, b[:])
 	return nil
 }
 
