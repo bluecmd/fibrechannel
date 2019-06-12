@@ -62,6 +62,9 @@ type SequenceCount uint16
 type ExchangeID uint16
 
 type Frame struct {
+	// Start-of-frame
+	SOF SOF
+
 	RCtl RoutingControl
 
 	// Which field of these two are in use is controlled by the
@@ -118,6 +121,9 @@ type Frame struct {
 	// TODO(bluecmd): Parameters
 
 	Payload []byte
+
+	// End-of-frame
+	EOF EOF
 }
 
 func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
@@ -186,6 +192,9 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 
 	f.Payload = make([]byte, len(b))
 	copy(f.Payload, b[:])
+
+	f.SOF = sof
+	f.EOF = eof
 	return nil
 }
 

@@ -28,7 +28,9 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 		{
 			desc: "normal frame - csctl enabled",
 			b:    bytes.Repeat([]byte{0}, 24),
-			f:    &Frame{CSCtl: new(ClassControl), Payload: []byte{}},
+			s:    SOFf,
+			e:    EOFn,
+			f:    &Frame{SOF: SOFf, EOF: EOFn, CSCtl: new(ClassControl), Payload: []byte{}},
 		},
 		{
 			desc: "invalid size - not a 4b multiple",
