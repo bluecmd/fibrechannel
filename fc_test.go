@@ -25,6 +25,16 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 			b:    bytes.Repeat([]byte{0}, 13),
 			err:  io.ErrUnexpectedEOF,
 		},
+		{
+			desc: "normal frame",
+			b:    bytes.Repeat([]byte{0}, 20),
+			f:    &Frame{},
+		},
+		{
+			desc: "invalid size",
+			b:    bytes.Repeat([]byte{0}, 21),
+			err:  io.ErrUnexpectedEOF,
+		},
 	}
 
 	for _, tt := range tests {

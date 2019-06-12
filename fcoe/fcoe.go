@@ -34,7 +34,7 @@ type Frame struct {
 	Version int
 	SOF     fc.SOF
 
-	Payload fc.Frame
+	Payload []byte
 
 	EOF fc.EOF
 
@@ -52,12 +52,12 @@ func (f *Frame) UnmarshalBinary(b []byte) error {
 	if !ok {
 		return fc.ErrInvalidSOF
 	}
-	p := b[14 : len(b)-8]
+	f.Payload = b[14 : len(b)-8]
 	f.EOF, ok = eofMap[b[len(b)-4]]
 	if !ok {
 		return fc.ErrInvalidEOF
 	}
 	f.CRC32 = binary.BigEndian.Uint32(b[len(b)-8 : len(b)-4])
 
-	return f.Payload.UnmarshalBinary(f.SOF, p, f.EOF)
+	return nil
 }

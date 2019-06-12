@@ -10,9 +10,6 @@ import (
 )
 
 func TestFrameUnmarshalBinary(t *testing.T) {
-	fcfb := bytes.Repeat([]byte{0}, 28)
-	fcf := fc.Frame{}
-
 	var tests = []struct {
 		desc string
 		f    *Frame
@@ -30,19 +27,18 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 		},
 		{
 			desc: "standard frame",
-			b: append([]byte{
+			b: []byte{
 				0x0, 0x0,
 				0x0, 0x0, 0x0, 0x0,
 				0x0, 0x0, 0x0, 0x0,
 				0x0, 0x0, 0x0, 0x28,
-			}, append(fcfb, []byte{
 				0x12, 0x34, 0x56, 0x78,
 				0x41, 0x00, 0x00, 0x00,
-			}...)...),
+			},
 			f: &Frame{
 				CRC32:   0x12345678,
 				SOF:     fc.SOFf,
-				Payload: fcf,
+				Payload: []byte{},
 				EOF:     fc.EOFn,
 			},
 		},
