@@ -135,46 +135,46 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 		return io.ErrUnexpectedEOF
 	}
 
-	if err := f.RCtl.UnmarshalBinary(b[0]); err != nil {
+	if err := f.RCtl.write(b[0]); err != nil {
 		return err
 	}
-	if err := f.Destination.UnmarshalBinary(b[1:4]); err != nil {
+	if err := f.Destination.write(b[1:4]); err != nil {
 		return err
 	}
-	if err := f.Source.UnmarshalBinary(b[5:8]); err != nil {
+	if err := f.Source.write(b[5:8]); err != nil {
 		return err
 	}
-	if err := f.Type.UnmarshalBinary(b[8]); err != nil {
+	if err := f.Type.write(b[8]); err != nil {
 		return err
 	}
-	if err := f.FCtl.UnmarshalBinary(b[9:12]); err != nil {
+	if err := f.FCtl.write(b[9:12]); err != nil {
 		return err
 	}
-	if err := f.SeqID.UnmarshalBinary(b[12]); err != nil {
+	if err := f.SeqID.write(b[12]); err != nil {
 		return err
 	}
-	if err := f.DFCtl.UnmarshalBinary(b[13]); err != nil {
+	if err := f.DFCtl.write(b[13]); err != nil {
 		return err
 	}
-	if err := f.SeqCount.UnmarshalBinary(b[14:16]); err != nil {
+	if err := f.SeqCount.write(b[14:16]); err != nil {
 		return err
 	}
-	if err := f.OXID.UnmarshalBinary(b[16:18]); err != nil {
+	if err := f.OXID.write(b[16:18]); err != nil {
 		return err
 	}
-	if err := f.RXID.UnmarshalBinary(b[18:20]); err != nil {
+	if err := f.RXID.write(b[18:20]); err != nil {
 		return err
 	}
 
 	if f.FCtl.CSCtlEnabled() {
 		var cc ClassControl
-		if err := cc.UnmarshalBinary(b[4]); err != nil {
+		if err := cc.write(b[4]); err != nil {
 			return err
 		}
 		f.CSCtl = &cc
 	} else {
 		var p Priority
-		if err := p.UnmarshalBinary(b[4]); err != nil {
+		if err := p.write(b[4]); err != nil {
 			return err
 		}
 		f.Priority = &p
@@ -198,12 +198,62 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 	return nil
 }
 
-func (s *RoutingControl) UnmarshalBinary(b byte) error {
+func (f *Frame) MarshalBinary() ([]byte, error) {
+	b := make([]byte, f.length())
+	err := f.read(b)
+	return b, err
+}
+
+func (f *Frame) read(b []byte) error {
+	f.RCtl.read(b[0:1])
+	f.Destination.read(b[1:4])
+	f.Source.read(b[5:8])
+	f.Type.read(b[8:9])
+	f.FCtl.read(b[9:12])
+	f.SeqID.read(b[12:13])
+	f.DFCtl.read(b[13:14])
+	f.SeqCount.read(b[14:16])
+	f.OXID.read(b[16:18])
+	f.RXID.read(b[18:20])
+
+	if f.FCtl.CSCtlEnabled() {
+		if f.CSCtl == nil {
+			return fmt.Errorf("CSCtl is missing but enabled")
+		}
+		f.CSCtl.read(b[4:5])
+	} else {
+		if f.Priority == nil {
+			return fmt.Errorf("Priority is missing but enabled")
+		}
+		f.Priority.read(b[4:5])
+	}
+
+	// TODO: Parameters
+	if f.DFCtl.HasESP() {
+		return fmt.Errorf("ESP is not implemented")
+	}
+	if f.DFCtl.HasNetworkHeader() {
+		return fmt.Errorf("Network header is not implemented")
+	}
+
+	copy(b[24:], f.Payload)
+	return nil
+}
+
+func (f *Frame) length() int {
+	return len(f.Payload) + 24
+}
+
+func (s *RoutingControl) write(b byte) error {
 	*s = RoutingControl(b)
 	return nil
 }
 
-func (s *Address) UnmarshalBinary(b []byte) error {
+func (s *RoutingControl) read(b []byte) {
+	b[0] = byte(*s)
+}
+
+func (s *Address) write(b []byte) error {
 	if len(b) != 3 {
 		return io.ErrUnexpectedEOF
 	}
@@ -211,7 +261,11 @@ func (s *Address) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-func (s *FrameControl) UnmarshalBinary(b []byte) error {
+func (s *Address) read(b []byte) {
+	copy(b, s[:])
+}
+
+func (s *FrameControl) write(b []byte) error {
 	if len(b) != 3 {
 		return io.ErrUnexpectedEOF
 	}
@@ -219,29 +273,51 @@ func (s *FrameControl) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+func (s *FrameControl) read(b []byte) {
+	buf := make([]byte, 4)
+	binary.BigEndian.PutUint32(buf, uint32(*s))
+	copy(b, buf[1:3])
+}
+
 func (s *FrameControl) CSCtlEnabled() bool {
 	return *s&0x20000 == 0
 
 }
 
-func (s *Type) UnmarshalBinary(b byte) error {
+func (s *Type) write(b byte) error {
 	*s = Type(b)
 	return nil
 }
 
-func (s *ClassControl) UnmarshalBinary(b byte) error {
+func (s *Type) read(b []byte) {
+	b[0] = byte(*s)
+}
+
+func (s *ClassControl) write(b byte) error {
 	*s = ClassControl(b)
 	return nil
 }
 
-func (s *Priority) UnmarshalBinary(b byte) error {
+func (s *ClassControl) read(b []byte) {
+	b[0] = byte(*s)
+}
+
+func (s *Priority) write(b byte) error {
 	*s = Priority(b)
 	return nil
 }
 
-func (s *DataFieldControl) UnmarshalBinary(b byte) error {
+func (s *Priority) read(b []byte) {
+	b[0] = byte(*s)
+}
+
+func (s *DataFieldControl) write(b byte) error {
 	*s = DataFieldControl(b)
 	return nil
+}
+
+func (s *DataFieldControl) read(b []byte) {
+	b[0] = byte(*s)
 }
 
 func (s *DataFieldControl) HasESP() bool {
@@ -256,12 +332,16 @@ func (s *DataFieldControl) DeviceHeaderSize() int {
 	return int(*s & 0x03 << 4)
 }
 
-func (s *SequenceID) UnmarshalBinary(b byte) error {
+func (s *SequenceID) write(b byte) error {
 	*s = SequenceID(b)
 	return nil
 }
 
-func (s *SequenceCount) UnmarshalBinary(b []byte) error {
+func (s *SequenceID) read(b []byte) {
+	b[0] = byte(*s)
+}
+
+func (s *SequenceCount) write(b []byte) error {
 	if len(b) != 2 {
 		return io.ErrUnexpectedEOF
 	}
@@ -269,10 +349,18 @@ func (s *SequenceCount) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-func (s *ExchangeID) UnmarshalBinary(b []byte) error {
+func (s *SequenceCount) read(b []byte) {
+	binary.BigEndian.PutUint16(b, uint16(*s))
+}
+
+func (s *ExchangeID) write(b []byte) error {
 	if len(b) != 2 {
 		return io.ErrUnexpectedEOF
 	}
 	*s = ExchangeID(binary.BigEndian.Uint16(b))
 	return nil
+}
+
+func (s *ExchangeID) read(b []byte) {
+	binary.BigEndian.PutUint16(b, uint16(*s))
 }

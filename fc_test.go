@@ -7,6 +7,37 @@ import (
 	"testing"
 )
 
+func TestFrameMarshalBinary(t *testing.T) {
+	var tests = []struct {
+		desc string
+		f    *Frame
+		b    []byte
+		err  error
+	}{
+		{
+			desc: "Normal frame",
+			f:    &Frame{CSCtl: new(ClassControl)},
+			b:    bytes.Repeat([]byte{0}, 24),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			b, err := tt.f.MarshalBinary()
+			if err != nil {
+				if want, got := tt.err, err; want != got {
+					t.Fatalf("unexpected error: %v != %v", want, got)
+				}
+				return
+			}
+
+			if want, got := tt.b, b; !bytes.Equal(want, got) {
+				t.Fatalf("unexpected Frame bytes:\n- want: %v\n-  got: %v", want, got)
+			}
+		})
+	}
+}
+
 func TestFrameUnmarshalBinary(t *testing.T) {
 	var tests = []struct {
 		desc string
