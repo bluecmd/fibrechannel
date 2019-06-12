@@ -7,6 +7,10 @@ import (
 	fc "github.com/bluecmd/fibrechannel"
 )
 
+const (
+	EtherType uint16 = 0x8906
+)
+
 var (
 	eofMap = map[uint8]fc.EOF{
 		0x41: fc.EOFn,
