@@ -1,7 +1,7 @@
 package fibrechannel
 
 import (
-	//"encoding/binary"
+	"encoding/binary"
 	"errors"
 	"io"
 )
@@ -145,15 +145,17 @@ func (f *Frame) UnmarshalBinary(sof SOF, b []byte, eof EOF) error {
 	}
 
 	if f.FCtl.CSCtlEnabled() {
-		f.CsCtl := &ClassControl{}
-		if err := f.CsCtl.UnmarshalBinary(b[4]); err != nil{
+		var cc ClassControl
+		if err := cc.UnmarshalBinary(b[4]); err != nil{
 			return err
 		}
+		f.CSCtl = &cc
 	} else {
-		f.Priority := &Priority{}
-		if err := f.Priority.UnmarshalBinary(b[4]); err != nil{
+		var p Priority
+		if err := p.UnmarshalBinary(b[4]); err != nil{
 			return err
 		}
+		f.Priority = &p
 	}
 	// TODO(bluecmd): CsCtl / Priority
 	return nil
@@ -176,15 +178,12 @@ func (s *FrameControl) UnmarshalBinary(b []byte) error {
 	if len(b) != 3 {
 		return io.ErrUnexpectedEOF
 	}
-	// Unmarshal 32 bit
-	// TODO
+	*s = FrameControl(binary.BigEndian.Uint32(append([]byte{0}, b...)))
 	return nil
 }
 
-func (s *FrameControl) CSCtlEnabled() error {
-	// Unmarshal 32 bit
-	// TODO
-	return False
+func (s *FrameControl) CSCtlEnabled() bool {
+	return *s & 0x20000 == 0
 
 }
 
@@ -208,6 +207,18 @@ func (s *DataFieldControl) UnmarshalBinary(b byte) error {
 	return nil
 }
 
+func (s *DataFieldControl) HasESP() bool {
+	return *s & 0x40 != 0
+}
+
+func (s *DataFieldControl) HasNetworkHeader() bool {
+	return *s & 0x20 != 0
+}
+
+func (s *DataFieldControl) DeviceHeaderSize() int {
+	return int(*s & 0x03 << 4)
+}
+
 func (s *SequenceID) UnmarshalBinary(b byte) error {
 	*s = SequenceID(b)
 	return nil
@@ -217,8 +228,7 @@ func (s *SequenceCount) UnmarshalBinary(b []byte) error {
 	if len(b) != 2 {
 		return io.ErrUnexpectedEOF
 	}
-	// TODO: Unmarshal 16 bit
-	copy(s[:], b)
+	*s = SequenceCount(binary.BigEndian.Uint16(b))
 	return nil
 }
 
@@ -226,7 +236,6 @@ func (s *ExchangeID) UnmarshalBinary(b []byte) error {
 	if len(b) != 2 {
 		return io.ErrUnexpectedEOF
 	}
-	// TODO: Unmarshal 16 bit
-	copy(s[:], b)
+	*s = ExchangeID(binary.BigEndian.Uint16(b))
 	return nil
 }
