@@ -41,6 +41,7 @@ const (
 	TypeSWILS    = 0x22
 	TypeAL       = 0x23
 	TypeSNMP     = 0x24
+	TypeNVME     = 0x28
 	TypeSPINFAB  = 0xEE
 	TypeDIAG     = 0xEF
 )
