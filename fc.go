@@ -63,8 +63,13 @@ type SequenceCount uint16
 type ExchangeID uint16
 
 type Frame struct {
-	// Start-of-frame
+	// Start-of-frame, not part of the wire-format
+	// The SOF/EOF is an important part of FC so this is a convenience field
+	// for implementations to keep track of which marker is used for the frame
 	SOF SOF
+
+	// End-of-frame, see "start-of-frame"
+	EOF EOF
 
 	RCtl RoutingControl `fc:"@0"`
 
@@ -78,12 +83,12 @@ type Frame struct {
 
 	// Which field of these two are in use is controlled by the
 	// "CS_CTL/Priority Enable" bit in F_CTL.
-	CsctlPriorityRaw byte `fc:"@4"`
-	CSCtl    *ClassControl // Handled by PostUnmarshal
-	Priority *Priority     // Handled by PostUnmarshal
+	CsctlPriorityRaw byte          `fc:"@4"`
+	CSCtl            *ClassControl // Handled by PostUnmarshal
+	Priority         *Priority     // Handled by PostUnmarshal
 
 	// Same as Destination
-	Source      Address `fc:"@5"`
+	Source Address `fc:"@5"`
 
 	Type Type `fc:"@8"`
 
@@ -124,11 +129,8 @@ type Frame struct {
 	// TODO(bluecmd): Optional fields
 	// TODO(bluecmd): Parameters
 
-	RawPayload []byte
+	RawPayload []byte      `fc:"@24"`
 	Payload    interface{} // Handled by Rebuild
-
-	// End-of-frame
-	EOF EOF
 }
 
 func (f *Frame) PostUnmarshal() error {
@@ -171,7 +173,6 @@ func (f *Frame) PreMarshal() error {
 	return nil
 }
 
-
 func (s *FrameControl) ReadFrom(r io.Reader) (int64, error) {
 	b := [3]byte{}
 	n, err := r.Read(b[:])
@@ -211,4 +212,3 @@ func ReadFrame(sof SOF, r io.Reader, eof EOF, f *Frame) error {
 	f.EOF = eof
 	return Read(r, f)
 }
-
