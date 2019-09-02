@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"reflect"
+	"sync"
 )
 
 type postUnmarshaller interface {
@@ -21,6 +22,15 @@ type fcTag struct {
 	off int
 }
 
+type fcTagCache struct {
+	tags []*fcTag
+}
+
+var (
+	tagCacheMap  = map[reflect.Type]*fcTagCache{}
+	tagCacheLock = sync.RWMutex{}
+)
+
 func parseTag(f *reflect.StructField) (*fcTag, error) {
 	fc := f.Tag.Get("fc")
 	if fc == "" {
@@ -31,6 +41,29 @@ func parseTag(f *reflect.StructField) (*fcTag, error) {
 	return &tag, nil
 }
 
+func tagcache(t reflect.Type) (*fcTagCache, error) {
+	tagCacheLock.RLock()
+	tc, ok := tagCacheMap[t]
+	tagCacheLock.RUnlock()
+	if !ok {
+		tc = &fcTagCache{
+			tags: []*fcTag{},
+		}
+		for i := 0; i < t.NumField(); i++ {
+			ft := t.Field(i)
+			tag, err := parseTag(&ft)
+			if err != nil {
+				return nil, fmt.Errorf("%v tag error: %v", ft, err)
+			}
+			tc.tags = append(tc.tags, tag)
+		}
+		tagCacheLock.Lock()
+		tagCacheMap[t] = tc
+		tagCacheLock.Unlock()
+	}
+	return tc, nil
+}
+
 // Reads a fibrechannel package annotated structure from the io.Reader
 // If fed a structure that does not have any `fc` tags it will do nothing
 func Read(r io.Reader, f interface{}) error {
@@ -39,20 +72,20 @@ func Read(r io.Reader, f interface{}) error {
 		return fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
 	}
 	frm := ptr.Elem()
+	frmt := frm.Type()
+
+	tc, err := tagcache(frmt)
+	if err != nil {
+		return err
+	}
 
 	pos := 0
-	for i := 0; i < frm.NumField(); i++ {
-		ft := frm.Type().Field(i)
-		tag, err := parseTag(&ft)
-		if err != nil {
-			return fmt.Errorf("%v tag error: %v", ft, err)
-		}
+	for i, tag := range tc.tags {
 		if tag == nil {
 			continue
 		}
-		// We require the struct to be defined in order to not have to jump around
 		if pos > tag.off {
-			return fmt.Errorf("would have gone backwards on field %v", ft)
+			return fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
 		}
 		// Skip ahead to the new position if needed
 		if tag.off > pos {
@@ -96,7 +129,7 @@ func Read(r io.Reader, f interface{}) error {
 					return err
 				}
 			}
-			pos = tag.off + int(ft.Type.Size())
+			pos = tag.off + int(frmt.Field(i).Type.Size())
 		}
 	}
 
@@ -122,20 +155,21 @@ func Write(w io.Writer, f interface{}) error {
 		return fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
 	}
 	frm := ptr.Elem()
+	frmt := frm.Type()
+
+	tc, err := tagcache(frmt)
+	if err != nil {
+		return err
+	}
 
 	pos := 0
-	for i := 0; i < frm.NumField(); i++ {
-		ft := frm.Type().Field(i)
-		tag, err := parseTag(&ft)
-		if err != nil {
-			return fmt.Errorf("%v tag error: %v", ft, err)
-		}
+	for i, tag := range tc.tags {
 		if tag == nil {
 			continue
 		}
 		// We require the struct to be defined in order to not have to jump around
 		if pos > tag.off {
-			return fmt.Errorf("would have gone backwards on field %v", ft)
+			return fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
 		}
 		// Skip ahead to the new position if needed
 		if tag.off > pos {
@@ -161,7 +195,7 @@ func Write(w io.Writer, f interface{}) error {
 			if err := binary.Write(w, binary.BigEndian, fi); err != nil {
 				return err
 			}
-			pos = tag.off + int(ft.Type.Size())
+			pos = tag.off + int(frmt.Field(i).Type.Size())
 		}
 	}
 
