@@ -2,6 +2,8 @@ package els
 
 import (
 	"io"
+
+	fc "github.com/bluecmd/fibrechannel"
 )
 
 type ClassSvcParams struct {
@@ -14,8 +16,8 @@ type CommonSvcParams struct {
 
 type FLOGI struct {
 	CSP  CommonSvcParams
-	WWPN WWN
-	WWNN WWN
+	WWPN fc.WWN
+	WWNN fc.WWN
 	CSSP [4]ClassSvcParams
 }
 

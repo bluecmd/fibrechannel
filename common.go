@@ -1,4 +1,4 @@
-package els
+package fibrechannel
 
 import (
 	"fmt"
