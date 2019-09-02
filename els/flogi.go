@@ -16,19 +16,11 @@ type CommonSvcParams struct {
 
 type FLOGI struct {
 	CSP  CommonSvcParams
-	WWPN fc.WWN
-	WWNN fc.WWN
+	WWPN fc.WWN `fc:"@16"`
+	WWNN fc.WWN `fc:"@24"`
 	CSSP [4]ClassSvcParams
 }
 
-func (s *FLOGI) UnmarshalBinary(b []byte) error {
-	if len(b) < 112 {
-		return io.ErrUnexpectedEOF
-	}
-
-	// TODO CSP / CSSP
-
-	copy(s.WWPN[:], b[16:24])
-	copy(s.WWNN[:], b[24:32])
-	return nil
+func (s *FLOGI) ReadFrom(r io.Reader) (int64, error) {
+	return fc.ReadFrom(r, s)
 }

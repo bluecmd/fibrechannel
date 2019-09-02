@@ -207,8 +207,8 @@ func (s *DataFieldControl) DeviceHeaderSize() int {
 }
 
 // Helper to save the SOF and EOF markers in the Fibre Channel frame
-func ReadFrame(sof SOF, r io.Reader, eof EOF, f *Frame) error {
+func ReadFrame(sof SOF, r io.Reader, eof EOF, f *Frame) (int64, error) {
 	f.SOF = sof
 	f.EOF = eof
-	return Read(r, f)
+	return ReadFrom(r, f)
 }

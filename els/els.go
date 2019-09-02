@@ -2,9 +2,11 @@ package els
 
 import (
 	"io"
+
+	fc "github.com/bluecmd/fibrechannel"
 )
 
-type Command int
+type Command uint8
 
 const (
 	CmdLSRJT     = 0x01 // ESL reject
@@ -70,16 +72,10 @@ const (
 )
 
 type Frame struct {
-	Command Command
-	Payload []byte
+	Command Command `fc:"@0"`
+	Payload []byte  `fc:"@4"`
 }
 
-func (f *Frame) UnmarshalBinary(b []byte) error {
-	if len(b) < 4 {
-		return io.ErrUnexpectedEOF
-	}
-
-	f.Command = Command(b[0])
-	f.Payload = b[4:]
-	return nil
+func (s *Frame) ReadFrom(r io.Reader) (int64, error) {
+	return fc.ReadFrom(r, s)
 }

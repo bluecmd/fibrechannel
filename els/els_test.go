@@ -9,15 +9,11 @@ import (
 	fc "github.com/bluecmd/fibrechannel"
 )
 
-type elsCmd interface {
-	UnmarshalBinary(b []byte) error
-}
-
 func TestFrameUnmarshalBinary(t *testing.T) {
 	var tests = []struct {
 		desc string
-		c    elsCmd
-		f    elsCmd
+		c    io.ReaderFrom
+		f    io.ReaderFrom
 		b    []byte
 		err  error
 	}{
@@ -49,7 +45,7 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			if err := tt.c.UnmarshalBinary(tt.b); err != nil {
+			if _, err := tt.c.ReadFrom(bytes.NewReader(tt.b)); err != nil {
 				if want, got := tt.err, err; want != got {
 					t.Fatalf("unexpected error: %v != %v", want, got)
 				}

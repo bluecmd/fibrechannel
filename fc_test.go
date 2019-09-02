@@ -26,7 +26,7 @@ func TestFrameMarshalBinary(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			err := Write(buf, tt.f)
+			_, err := WriteTo(buf, tt.f)
 			if err != nil {
 				if want, got := tt.err, err; want != got {
 					t.Fatalf("unexpected error: %v != %v", want, got)
@@ -71,7 +71,7 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			f := new(Frame)
-			if err := ReadFrame(tt.s, bytes.NewBuffer(tt.b), tt.e, f); err != nil {
+			if _, err := ReadFrame(tt.s, bytes.NewBuffer(tt.b), tt.e, f); err != nil {
 				if want, got := tt.err, err; want != got {
 					t.Fatalf("unexpected error: %v != %v", want, got)
 				}
@@ -90,7 +90,7 @@ func BenchmarkUnmarshal(b *testing.B) {
 	f := new(Frame)
 	for n := 0; n < b.N; n++ {
 		buf.Seek(0, io.SeekStart)
-		Read(buf, f)
+		ReadFrom(buf, f)
 	}
 }
 
@@ -100,6 +100,6 @@ func BenchmarkMarshal(b *testing.B) {
 	f := &Frame{CSCtl: new(ClassControl), RawPayload: []byte{1, 2, 3, 4}}
 	for n := 0; n < b.N; n++ {
 		buf.Reset()
-		Write(buf, f)
+		WriteTo(buf, f)
 	}
 }

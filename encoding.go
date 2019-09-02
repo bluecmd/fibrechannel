@@ -19,7 +19,7 @@ type preMarshaller interface {
 }
 
 type fcTag struct {
-	off int
+	off int64
 }
 
 type fcTagCache struct {
@@ -66,110 +66,113 @@ func tagcache(t reflect.Type) (*fcTagCache, error) {
 
 // Reads a fibrechannel package annotated structure from the io.Reader
 // If fed a structure that does not have any `fc` tags it will do nothing
-func Read(r io.Reader, f interface{}) error {
+func ReadFrom(r io.Reader, f interface{}) (int64, error) {
 	ptr := reflect.ValueOf(f)
 	if ptr.Kind() != reflect.Ptr {
-		return fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
+		return 0, fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
 	}
 	frm := ptr.Elem()
 	frmt := frm.Type()
 
 	tc, err := tagcache(frmt)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	pos := 0
+	var pos int64
 	for i, tag := range tc.tags {
 		if tag == nil {
 			continue
 		}
 		if pos > tag.off {
-			return fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
+			return pos, fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
 		}
 		// Skip ahead to the new position if needed
 		if tag.off > pos {
 			skip := int64(tag.off - pos)
 			n, err := io.CopyN(ioutil.Discard, r, skip)
 			if err != nil {
-				return err
+				return pos + n, err
 			}
 			if n != skip {
-				return io.ErrUnexpectedEOF
+				return pos + n, io.ErrUnexpectedEOF
 			}
 		}
 		fi := frm.Field(i).Addr().Interface()
-		// If the field is a []byte assume it's the payload and shove the rest in there
-		if slice, ok := fi.(*[]byte); ok {
-			buf := new(bytes.Buffer)
-			_, err := buf.ReadFrom(r)
-			if err != nil {
-				return err
-			}
-			*slice = buf.Bytes()
-			// We're done, there cannot be anything left
-			break
-		}
 		// If the field has a ReadFrom method, use it - otherwise use binary.Read
 		if rdr, ok := fi.(io.ReaderFrom); ok {
 			n, err := rdr.ReadFrom(r)
 			if err != nil {
 				if err == io.EOF {
-					return io.ErrUnexpectedEOF
+					return pos + n, io.ErrUnexpectedEOF
 				} else {
-					return err
+					return pos + n, err
 				}
 			}
-			pos = tag.off + int(n)
-		} else {
-			if err := binary.Read(r, binary.BigEndian, fi); err != nil {
-				if err == io.EOF {
-					return io.ErrUnexpectedEOF
-				} else {
-					return err
-				}
-			}
-			pos = tag.off + int(frmt.Field(i).Type.Size())
+			pos = tag.off + n
+			continue
 		}
+
+		// If the field is a []byte assume it's the payload and shove the rest in there
+		if slice, ok := fi.(*[]byte); ok {
+			buf := new(bytes.Buffer)
+			_, err := buf.ReadFrom(r)
+			if err != nil {
+				return pos, err
+			}
+			*slice = buf.Bytes()
+			// We're done, there cannot be anything left
+			break
+		}
+
+		// Otherwise default to binary.Read
+		if err := binary.Read(r, binary.BigEndian, fi); err != nil {
+			if err == io.EOF {
+				return pos, io.ErrUnexpectedEOF
+			} else {
+				return pos, err
+			}
+		}
+		pos = tag.off + int64(frmt.Field(i).Type.Size())
 	}
 
 	// If there is a PostUnmarshal, call it with the byte array
 	if pm, ok := f.(postUnmarshaller); ok {
-		return pm.PostUnmarshal()
+		return pos, pm.PostUnmarshal()
 	}
-	return nil
+	return pos, nil
 }
 
 // Writes a fibrechannel package annotated structure to the io.Writer
 // If fed a structure that does not have any `fc` tags it will do nothing
-func Write(w io.Writer, f interface{}) error {
+func WriteTo(w io.Writer, f interface{}) (int64, error) {
 	// If there is a PostUnmarshal, call it with the byte array
 	if pm, ok := f.(preMarshaller); ok {
 		if err := pm.PreMarshal(); err != nil {
-			return err
+			return 0, err
 		}
 	}
 
 	ptr := reflect.ValueOf(f)
 	if ptr.Kind() != reflect.Ptr {
-		return fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
+		return 0, fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)
 	}
 	frm := ptr.Elem()
 	frmt := frm.Type()
 
 	tc, err := tagcache(frmt)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	pos := 0
+	var pos int64
 	for i, tag := range tc.tags {
 		if tag == nil {
 			continue
 		}
 		// We require the struct to be defined in order to not have to jump around
 		if pos > tag.off {
-			return fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
+			return pos, fmt.Errorf("would have gone backwards on field %v", frmt.Field(i))
 		}
 		// Skip ahead to the new position if needed
 		if tag.off > pos {
@@ -177,10 +180,10 @@ func Write(w io.Writer, f interface{}) error {
 			// TODO(bluecmd): A lot of wasted allocations?
 			n, err := w.Write(make([]byte, skip))
 			if err != nil {
-				return err
+				return pos + int64(n), err
 			}
-			if n != skip {
-				return io.ErrUnexpectedEOF
+			if int64(n) != skip {
+				return pos + int64(n), io.ErrUnexpectedEOF
 			}
 		}
 		// If the field has a WriteTo method, use it - otherwise use binary.Write
@@ -188,16 +191,16 @@ func Write(w io.Writer, f interface{}) error {
 		if wrt, ok := fi.(io.WriterTo); ok {
 			n, err := wrt.WriteTo(w)
 			if err != nil {
-				return err
+				return pos + n, err
 			}
-			pos = tag.off + int(n)
+			pos = tag.off + n
 		} else {
 			if err := binary.Write(w, binary.BigEndian, fi); err != nil {
-				return err
+				return pos, err
 			}
-			pos = tag.off + int(frmt.Field(i).Type.Size())
+			pos = tag.off + int64(frmt.Field(i).Type.Size())
 		}
 	}
 
-	return nil
+	return pos, nil
 }
