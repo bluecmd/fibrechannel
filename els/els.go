@@ -3,7 +3,7 @@ package els
 import (
 	"io"
 
-	fc "github.com/bluecmd/fibrechannel"
+	"github.com/bluecmd/fibrechannel/encoding"
 )
 
 type Command uint8
@@ -77,5 +77,5 @@ type Frame struct {
 }
 
 func (s *Frame) ReadFrom(r io.Reader) (int64, error) {
-	return fc.ReadFrom(r, s)
+	return encoding.ReadFrom(r, s)
 }

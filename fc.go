@@ -1,10 +1,14 @@
 package fibrechannel
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/bluecmd/fibrechannel/els"
+	"github.com/bluecmd/fibrechannel/encoding"
 )
 
 type SOF int
@@ -126,8 +130,7 @@ type Frame struct {
 	// RX_ID mechanism.
 	RXID ExchangeID `fc:"@18"`
 
-	// TODO(bluecmd): Optional fields
-	// TODO(bluecmd): Parameters
+	Parameters [4]byte `fc:"@20"`
 
 	RawPayload []byte      `fc:"@24"`
 	Payload    interface{} // Handled by Rebuild
@@ -147,6 +150,24 @@ func (f *Frame) PostUnmarshal() error {
 	if f.DFCtl.HasNetworkHeader() {
 		return fmt.Errorf("Network header is not implemented")
 	}
+
+	var sf io.ReaderFrom
+	switch f.Type {
+	case TypeELS:
+		sf = &els.Frame{}
+	}
+
+	if sf == nil {
+		// Unable to dig deeper, leave it to the user to figure it out
+		return nil
+	}
+
+	_, err := sf.ReadFrom(bytes.NewReader(f.RawPayload))
+	if err != nil {
+		return err
+	}
+	f.Payload = sf
+
 	return nil
 }
 
@@ -163,7 +184,6 @@ func (f *Frame) PreMarshal() error {
 		f.CsctlPriorityRaw = byte(*f.Priority)
 	}
 
-	// TODO: Parameters
 	if f.DFCtl.HasESP() {
 		return fmt.Errorf("ESP is not implemented")
 	}
@@ -207,8 +227,16 @@ func (s *DataFieldControl) DeviceHeaderSize() int {
 }
 
 // Helper to save the SOF and EOF markers in the Fibre Channel frame
-func ReadFrame(sof SOF, r io.Reader, eof EOF, f *Frame) (int64, error) {
+func (f *Frame) ReadFrame(sof SOF, r io.Reader, eof EOF) (int64, error) {
 	f.SOF = sof
 	f.EOF = eof
-	return ReadFrom(r, f)
+	return encoding.ReadFrom(r, f)
+}
+
+func (f *Frame) ReadFrom(r io.Reader) (int64, error) {
+	return encoding.ReadFrom(r, f)
+}
+
+func (f *Frame) WriteTo(w io.Writer) (int64, error) {
+	return encoding.WriteTo(w, f)
 }

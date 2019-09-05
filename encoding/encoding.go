@@ -1,4 +1,4 @@
-package fibrechannel
+package encoding
 
 import (
 	"bytes"

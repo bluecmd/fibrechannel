@@ -26,7 +26,7 @@ func TestFrameMarshalBinary(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			_, err := WriteTo(buf, tt.f)
+			_, err := tt.f.WriteTo(buf)
 			if err != nil {
 				if want, got := tt.err, err; want != got {
 					t.Fatalf("unexpected error: %v != %v", want, got)
@@ -60,18 +60,18 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 			err:  io.ErrUnexpectedEOF,
 		},
 		{
-			desc: "normal frame - csctl enabled",
-			b:    bytes.Repeat([]byte{0}, 28),
+			desc: "normal frame, unknown type (0xff), csctl enabled",
+			b:    append(append(bytes.Repeat([]byte{0}, 8), 0xff), bytes.Repeat([]byte{0}, 19)...),
 			s:    SOFf,
 			e:    EOFn,
-			f:    &Frame{SOF: SOFf, EOF: EOFn, CSCtl: new(ClassControl), RawPayload: []byte{0, 0, 0, 0}},
+			f:    &Frame{SOF: SOFf, EOF: EOFn, Type: 0xff, CSCtl: new(ClassControl), RawPayload: []byte{0, 0, 0, 0}},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			f := new(Frame)
-			if _, err := ReadFrame(tt.s, bytes.NewBuffer(tt.b), tt.e, f); err != nil {
+			if _, err := f.ReadFrame(tt.s, bytes.NewBuffer(tt.b), tt.e); err != nil {
 				if want, got := tt.err, err; want != got {
 					t.Fatalf("unexpected error: %v != %v", want, got)
 				}
@@ -90,7 +90,7 @@ func BenchmarkUnmarshal(b *testing.B) {
 	f := new(Frame)
 	for n := 0; n < b.N; n++ {
 		buf.Seek(0, io.SeekStart)
-		ReadFrom(buf, f)
+		f.ReadFrom(buf)
 	}
 }
 
@@ -100,6 +100,6 @@ func BenchmarkMarshal(b *testing.B) {
 	f := &Frame{CSCtl: new(ClassControl), RawPayload: []byte{1, 2, 3, 4}}
 	for n := 0; n < b.N; n++ {
 		buf.Reset()
-		WriteTo(buf, f)
+		f.WriteTo(buf)
 	}
 }

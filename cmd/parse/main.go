@@ -10,7 +10,7 @@ import (
 
 func main() {
 	frm := fc.Frame{}
-	_, err := fc.ReadFrom(os.Stdin, &frm)
+	_, err := frm.ReadFrom(os.Stdin)
 	if err != nil {
 		log.Fatalf("Failed to parse: %v", err)
 	}

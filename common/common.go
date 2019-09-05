@@ -1,4 +1,4 @@
-package fibrechannel
+package common
 
 import (
 	"encoding/binary"

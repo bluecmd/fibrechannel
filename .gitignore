@@ -1,2 +1,4 @@
 .*.swp
 cmd/parse/parse
+cmd/pcap/pcap
+testdata/*.dump

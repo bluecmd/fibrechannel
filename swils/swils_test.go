@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	fc "github.com/bluecmd/fibrechannel"
+	"github.com/bluecmd/fibrechannel/common"
 )
 
 func TestFrameUnmarshalBinary(t *testing.T) {
@@ -37,9 +37,9 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 				bytes.Repeat([]byte{0}, 50)...), 0, 0x03, 1, 2, 3, 0, 0, 0),
 			c: &ELP{},
 			f: &ELP{
-				Port:    fc.WWN([8]byte{0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa}),
-				Switch:  fc.WWN([8]byte{0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55}),
-				FCParam: fc.Uint16SizedByteArray([]byte{1, 2, 3}),
+				Port:    common.WWN([8]byte{0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa}),
+				Switch:  common.WWN([8]byte{0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55}),
+				FCParam: common.Uint16SizedByteArray([]byte{1, 2, 3}),
 			},
 		},
 	}
