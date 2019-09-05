@@ -9,3 +9,5 @@ meta:
 seq:
   - id: placeholder
     size-eos: true
+
+# vim: set ft=yaml:ts=2:sw=2

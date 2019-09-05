@@ -18,19 +18,11 @@ seq:
   - id: destination_id
     type: address
     size: 3
-# https://github.com/kaitai-io/kaitai_struct/issues/618
-#  - id: cs_ctl
-#    type: u1
-#    if: f_ctl.csctl_enabled
-#    doc: |
-#      This field is only present if CSCtl enabled
-#  - id: priority
-#    type: u1
-#    if: false
-#    doc: |
-#      This field is only present if !CSCtl enabled
   - id: csctl_or_priority
     type: u1
+    doc: |
+      This field is either CS_Ctl or Priority depending on the value of
+      f_ctl.priority_enable
   - id: source_id
     type: address
     size: 3
@@ -53,14 +45,21 @@ seq:
   - id: parameter
     type: parameter
     size: 4
-  - id: payload
+  - id: bls
     size-eos: true
-    type:
-      switch-on: type
-      cases:
-        'fctype_enum::bls': fc_bls
-        'fctype_enum::els': fc_els
-#        'fctype_enum::fcp': fc_fcp
+    if: type == fctype_enum::bls
+    type: fc_bls
+  - id: els
+    size-eos: true
+    if: type == fctype_enum::els
+    type: fc_els
+    #  - id: payload
+    #    size-eos: true
+    #    type:
+    #      switch-on: type
+    #      cases:
+    #        'fctype_enum::bls': fc_bls
+    #        'fctype_enum::els': fc_els
 
 enums:
   fctype_enum:
@@ -72,10 +71,10 @@ enums:
     0x09: gpp
     0x1b:
       id: sb_to_cu
-      doc: FICON / FC-SB-3: Control Unit -> Channel
+      doc: "FICON / FC-SB-3: Control Unit -> Channel"
     0x1c:
       id: sb_from_cu
-      doc: FICON / FC-SB-3: Channel -> Control Unit
+      doc: "FICON / FC-SB-3: Channel -> Control Unit"
     0x20: fcct
     0x22: swils
     0x23: al
@@ -150,3 +149,5 @@ types:
         type: b1
       - id: fill_bytes
         type: b2
+
+# vim: set ft=yaml:ts=2:sw=2

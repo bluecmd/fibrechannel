@@ -10,12 +10,16 @@ seq:
   - id: command
     type: u1
     enum: elscmd_enum
-  - id: payload
+  - id: prli
     size-eos: true
-    type:
-      switch-on: command
-      cases:
-        'elscmd_enum::prli': els_prli
+    type: els_prli
+    if: command == elscmd_enum::prli
+    #  - id: payload
+    #    size-eos: true
+    #    type:
+    #      switch-on: command
+    #      cases:
+    #        'elscmd_enum::prli': els_prli
 enums:
   elscmd_enum:
     0x01:
@@ -209,3 +213,5 @@ types:
         size: 4
         repeat: expr 
         repeat-expr: page_length / 4
+
+# vim: set ft=yaml:ts=2:sw=2
