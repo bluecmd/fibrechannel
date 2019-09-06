@@ -23,7 +23,7 @@ jobs:
       - run:
           name: vet
           command: |
-            go get -t
+            go get -t ./...
             go vet $(go list ./...)
       - run:
           name: gofmt
@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Test all
           command: |
-            go get -t
+            go get -t ./...
             go test ./...
   race:
     docker:
@@ -51,5 +51,5 @@ jobs:
       - run:
           name: Race detector
           command: |
-            go get -t
+            go get -t ./...
             go test -race ./...
