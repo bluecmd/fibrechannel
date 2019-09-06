@@ -1,0 +1,55 @@
+version: 2
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - clean-code
+      - test:
+          requires:
+            - clean-code
+      - race:
+          requires:
+            - clean-code
+jobs:
+  clean-code:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/bluecmd/fibrechannel
+    steps:
+      - checkout
+      - run:
+          name: Install ineffassign
+          command: go get github.com/gordonklaus/ineffassign
+      - run:
+          name: vet
+          command: |
+            go get -t
+            go vet $(go list ./...)
+      - run:
+          name: gofmt
+          command: test -z "$(gofmt -s -l $(go list ./... | cut -f 4- -d '/'))"
+      - run:
+          name: ineffassign
+          command: ineffassign .
+  test:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/bluecmd/fibrechannel
+    steps:
+      - checkout
+      - run:
+          name: Test all
+          command: |
+            go get -t
+            go test ./...
+  race:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /go/src/github.com/bluecmd/fibrechannel
+    steps:
+      - checkout
+      - run:
+          name: Race detector
+          command: |
+            go get -t
+            go test -race ./...

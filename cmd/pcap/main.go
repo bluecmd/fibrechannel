@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
+	gp "github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	pcap "github.com/google/gopacket/pcapgo"
-	gp "github.com/google/gopacket"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 		}
 		ci := gp.CaptureInfo{
 			CaptureLength: buf.Len(),
-			Length: buf.Len(),
+			Length:        buf.Len(),
 		}
 		if err := w.WritePacket(ci, buf.Bytes()); err != nil {
 			log.Fatalf("WritePacket: %v", err)

@@ -82,7 +82,7 @@ func TestFrameUnmarshalBinary(t *testing.T) {
 					PagesLength:   0x10,
 					PayloadLength: 20,
 					ServiceParameters: []ServiceParameter{
-						ServiceParameter{
+						{
 							Type: 8,
 						},
 					},
