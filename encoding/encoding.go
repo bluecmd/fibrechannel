@@ -64,6 +64,17 @@ func tagcache(t reflect.Type) (*fcTagCache, error) {
 	return tc, nil
 }
 
+func ReadFromAndPost(r io.Reader, f postUnmarshaller) (int64, error) {
+	n, err := ReadFrom(r, f)
+	if err != nil {
+		return n, err
+	}
+	if err := f.PostUnmarshal(); err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
 // Reads a fibrechannel package annotated structure from the io.Reader
 // If fed a structure that does not have any `fc` tags it will do nothing
 func ReadFrom(r io.Reader, f interface{}) (int64, error) {
@@ -136,23 +147,19 @@ func ReadFrom(r io.Reader, f interface{}) (int64, error) {
 		pos = tag.off + int64(frmt.Field(i).Type.Size())
 	}
 
-	// If there is a PostUnmarshal, call it with the byte array
-	if pm, ok := f.(postUnmarshaller); ok {
-		return pos, pm.PostUnmarshal()
-	}
 	return pos, nil
+}
+
+func WriteToAndPre(w io.Writer, f preMarshaller) (int64, error) {
+	if err := f.PreMarshal(); err != nil {
+		return 0, err
+	}
+	return WriteTo(w, f)
 }
 
 // Writes a fibrechannel package annotated structure to the io.Writer
 // If fed a structure that does not have any `fc` tags it will do nothing
 func WriteTo(w io.Writer, f interface{}) (int64, error) {
-	// If there is a PostUnmarshal, call it with the byte array
-	if pm, ok := f.(preMarshaller); ok {
-		if err := pm.PreMarshal(); err != nil {
-			return 0, err
-		}
-	}
-
 	ptr := reflect.ValueOf(f)
 	if ptr.Kind() != reflect.Ptr {
 		return 0, fmt.Errorf("Expected pointer to fibrechannel Frame, got %v", ptr)

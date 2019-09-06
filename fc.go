@@ -230,13 +230,13 @@ func (s *DataFieldControl) DeviceHeaderSize() int {
 func (f *Frame) ReadFrame(sof SOF, r io.Reader, eof EOF) (int64, error) {
 	f.SOF = sof
 	f.EOF = eof
-	return encoding.ReadFrom(r, f)
+	return f.ReadFrom(r)
 }
 
 func (f *Frame) ReadFrom(r io.Reader) (int64, error) {
-	return encoding.ReadFrom(r, f)
+	return encoding.ReadFromAndPost(r, f)
 }
 
 func (f *Frame) WriteTo(w io.Writer) (int64, error) {
-	return encoding.WriteTo(w, f)
+	return encoding.WriteToAndPre(w, f)
 }
