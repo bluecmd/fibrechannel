@@ -14,5 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to parse: %v", err)
 	}
-	spew.Dump(frm)
+	s := spew.NewDefaultConfig()
+	s.DisablePointerAddresses = true
+	s.Dump(frm)
 }

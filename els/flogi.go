@@ -9,12 +9,12 @@ import (
 
 type ClassSvcParams struct {
 	// TODO
-	_ [16]byte
+	X [16]byte
 }
 
 type CommonSvcParams struct {
 	// TODO
-	_ [16]byte
+	X [16]byte
 }
 
 type FLOGI struct {
@@ -27,4 +27,8 @@ type FLOGI struct {
 
 func (s *FLOGI) ReadFrom(r io.Reader) (int64, error) {
 	return encoding.ReadFrom(r, s)
+}
+
+func (s *FLOGI) WriteTo(w io.Writer) (int64, error) {
+	return encoding.WriteTo(w, s)
 }

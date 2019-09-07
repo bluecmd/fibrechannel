@@ -1,0 +1,38 @@
+(*els.Frame)({
+ Command: (els.Command) 3,
+ RawPayload: ([]uint8) <nil>,
+ Payload: (*els.PLOGI)({
+  CSP: (els.CommonSvcParams) {
+   X: ([16]uint8) (len=16 cap=16) {
+    00000000  20 20 00 05 80 00 08 00  00 ff 00 1f 00 00 07 d0  |  ..............|
+   }
+  },
+  WWPN: (common.WWN) (len=8 cap=8) 21:00:00:24:ff:3d:39:a0,
+  WWNN: (common.WWN) (len=8 cap=8) 20:00:00:24:ff:3d:39:a0,
+  CSSP: ([4]els.ClassSvcParams) (len=4 cap=4) {
+   (els.ClassSvcParams) {
+    X: ([16]uint8) (len=16 cap=16) {
+     00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    }
+   },
+   (els.ClassSvcParams) {
+    X: ([16]uint8) (len=16 cap=16) {
+     00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    }
+   },
+   (els.ClassSvcParams) {
+    X: ([16]uint8) (len=16 cap=16) {
+     00000000  80 00 00 00 00 00 08 00  00 ff 00 00 00 01 00 00  |................|
+    }
+   },
+   (els.ClassSvcParams) {
+    X: ([16]uint8) (len=16 cap=16) {
+     00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    }
+   }
+  },
+  VendorVersion: ([16]uint8) (len=16 cap=16) {
+   00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+  }
+ })
+})

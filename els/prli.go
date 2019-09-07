@@ -1,14 +1,15 @@
 package els
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/bluecmd/fibrechannel/encoding"
 )
 
 type ServiceParameter struct {
-	Type byte `fc:"@0"`
-	_    [15]byte
+	Type byte     `fc:"@0"`
+	Todo [15]byte `fc:"@1"`
 }
 
 type PRLI struct {
@@ -33,4 +34,24 @@ func (s *PRLI) ReadFrom(r io.Reader) (int64, error) {
 		s.ServiceParameters = append(s.ServiceParameters, x)
 	}
 	return n, nil
+}
+
+func (s *PRLI) WriteTo(w io.Writer) (int64, error) {
+	if len(s.ServiceParameters)*16 > 255 {
+		return 0, fmt.Errorf("Too many ServiceParameters")
+	}
+	s.PagesLength = uint8(len(s.ServiceParameters) * 16)
+	n, err := encoding.WriteTo(w, s)
+	if err != nil {
+		return n, err
+	}
+	for _, p := range s.ServiceParameters {
+		m, err := encoding.WriteTo(w, &p)
+		if err != nil {
+			return n + m, err
+		}
+		n += m
+	}
+	return n, nil
+
 }

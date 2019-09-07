@@ -102,5 +102,20 @@ func (f *Frame) PostUnmarshal() error {
 		return err
 	}
 	f.Payload = sf
+	f.RawPayload = nil
 	return nil
+}
+
+func (f *Frame) PreMarshal() error {
+	if f.Payload == nil {
+		return nil
+	}
+	b := bytes.NewBuffer(f.RawPayload)
+	_, err := f.Payload.(io.WriterTo).WriteTo(b)
+	f.RawPayload = b.Bytes()
+	return err
+}
+
+func (f *Frame) WriteTo(w io.Writer) (int64, error) {
+	return encoding.WriteToAndPre(w, f)
 }

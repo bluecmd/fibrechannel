@@ -1,0 +1,16 @@
+(*els.Frame)({
+ Command: (els.Command) 32,
+ RawPayload: ([]uint8) <nil>,
+ Payload: (*els.PRLI)({
+  PagesLength: (uint8) 16,
+  PayloadLength: (uint16) 20,
+  ServiceParameters: ([]els.ServiceParameter) (len=1 cap=1) {
+   (els.ServiceParameter) {
+    Type: (uint8) 8,
+    Todo: ([15]uint8) (len=15 cap=15) {
+     00000000  00 20 00 00 00 00 00 00  00 00 00 00 00 07 a2     |. .............|
+    }
+   }
+  }
+ })
+})
