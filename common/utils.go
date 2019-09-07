@@ -40,6 +40,9 @@ func TestFrameFiles(t *testing.T, f func() SerDes) {
 			}
 			frm := f()
 			n, err := frm.ReadFrom(bytes.NewReader(d))
+			if err != nil {
+				t.Errorf("ReadFrom: %v", err)
+			}
 			delta := n - int64(len(d))
 			if delta > 0 {
 				t.Errorf("ReadFrom left %d bytes", delta)
