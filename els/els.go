@@ -70,6 +70,11 @@ const (
 	CmdEVFP      = 0x7f // exchange virt. fabrics params
 	CmdLKA       = 0x80 // link keep-alive
 	CmdAuthELS   = 0x90 // authentication ELS
+
+	// R_CTL Values for ELS
+	RouteSolicited = 0x21
+	RouteRequest   = 0x22
+	RouteReply     = 0x23
 )
 
 type Frame struct {
