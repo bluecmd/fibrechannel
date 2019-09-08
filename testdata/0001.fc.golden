@@ -1,0 +1,96 @@
+(*fibrechannel.Frame)({
+ SOF: (fibrechannel.SOF) 0,
+ EOF: (fibrechannel.EOF) 0,
+ RCtl: (fibrechannel.RoutingControl) 34,
+ Destination: (fibrechannel.Address) (len=3 cap=3) {
+  00000000  01 00 00                                          |...|
+ },
+ CsctlPriorityRaw: (uint8) 0,
+ CSCtl: (*fibrechannel.ClassControl)(0),
+ Priority: (*fibrechannel.Priority)(<nil>),
+ Source: (fibrechannel.Address) (len=3 cap=3) {
+  00000000  02 0f 00                                          |...|
+ },
+ Type: (fibrechannel.Type) 1,
+ FCtl: (fibrechannel.FrameControl) 2686976,
+ SeqID: (fibrechannel.SequenceID) 0,
+ DFCtl: (fibrechannel.DataFieldControl) 0,
+ SeqCount: (fibrechannel.SequenceCount) 0,
+ OXID: (fibrechannel.ExchangeID) 477,
+ RXID: (fibrechannel.ExchangeID) 65535,
+ Parameters: ([4]uint8) (len=4 cap=4) {
+  00000000  00 00 00 00                                       |....|
+ },
+ RawPayload: ([]uint8) <nil>,
+ Payload: (*els.Frame)({
+  Command: (els.Command) 3,
+  RawPayload: ([]uint8) <nil>,
+  Payload: (*els.PLOGI)({
+   LOGI: (els.LOGI) {
+    CommonSvcParams: (els.CommonSvcParams) {
+     FCPHVersion: (uint16) 8224,
+     B2BCredits: (uint16) 5,
+     Features: (els.CommonFeatures) 2147485696,
+     MaxConcurrentSeq: (uint16) 255,
+     RelOffsetInfoCat: (uint16) 31,
+     EDTOV: (uint32) 2000
+    },
+    PortName: (common.WWN) (len=8 cap=8) 21:00:00:24:ff:3d:39:a0,
+    NodeName: (common.WWN) (len=8 cap=8) 20:00:00:24:ff:3d:39:a0,
+    ClassSvcParams: ([3]els.ClassSvcParams) (len=3 cap=3) {
+     (els.ClassSvcParams) {
+      Service: (uint16) 0,
+      Initiator: (uint16) 0,
+      Recipient: (uint16) 0,
+      ReceiveDataFieldSize: (uint16) 0,
+      _: (uint8) 0,
+      ConcurrentSeq: (uint8) 0,
+      E2ECredits: (uint16) 0,
+      _: (uint8) 0,
+      OpenSeqPerExch: (uint8) 0,
+      _: (uint16) 0
+     },
+     (els.ClassSvcParams) {
+      Service: (uint16) 0,
+      Initiator: (uint16) 0,
+      Recipient: (uint16) 0,
+      ReceiveDataFieldSize: (uint16) 0,
+      _: (uint8) 0,
+      ConcurrentSeq: (uint8) 0,
+      E2ECredits: (uint16) 0,
+      _: (uint8) 0,
+      OpenSeqPerExch: (uint8) 0,
+      _: (uint16) 0
+     },
+     (els.ClassSvcParams) {
+      Service: (uint16) 32768,
+      Initiator: (uint16) 0,
+      Recipient: (uint16) 0,
+      ReceiveDataFieldSize: (uint16) 2048,
+      _: (uint8) 0,
+      ConcurrentSeq: (uint8) 255,
+      E2ECredits: (uint16) 0,
+      _: (uint8) 0,
+      OpenSeqPerExch: (uint8) 1,
+      _: (uint16) 0
+     }
+    },
+    AuxSvcParams: (els.ClassSvcParams) {
+     Service: (uint16) 0,
+     Initiator: (uint16) 0,
+     Recipient: (uint16) 0,
+     ReceiveDataFieldSize: (uint16) 0,
+     _: (uint8) 0,
+     ConcurrentSeq: (uint8) 0,
+     E2ECredits: (uint16) 0,
+     _: (uint8) 0,
+     OpenSeqPerExch: (uint8) 0,
+     _: (uint16) 0
+    },
+    VendorVersion: ([16]uint8) (len=16 cap=16) {
+     00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    }
+   }
+  })
+ })
+})
