@@ -170,6 +170,7 @@ func (f *Frame) PostUnmarshal() error {
 		return err
 	}
 	f.Payload = sf
+	f.RawPayload = nil
 
 	return nil
 }
@@ -193,7 +194,14 @@ func (f *Frame) PreMarshal() error {
 	if f.DFCtl.HasNetworkHeader() {
 		return fmt.Errorf("Network header is not implemented")
 	}
-	return nil
+
+	if f.Payload == nil {
+		return nil
+	}
+	b := bytes.NewBuffer(f.RawPayload)
+	_, err := f.Payload.(io.WriterTo).WriteTo(b)
+	f.RawPayload = b.Bytes()
+	return err
 }
 
 func (s *FrameControl) ReadFrom(r io.Reader) (int64, error) {
