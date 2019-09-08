@@ -1,6 +1,7 @@
 package swils
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/bluecmd/fibrechannel/encoding"
@@ -40,10 +41,45 @@ const (
 )
 
 type Frame struct {
-	Command Command `fc:"@0"`
-	Payload []byte  `fc:"@4"`
+	Command    Command `fc:"@0"`
+	RawPayload []byte  `fc:"@4"`
+	Payload    interface{}
 }
 
-func (s *Frame) ReadFrom(r io.Reader) (int64, error) {
-	return encoding.ReadFrom(r, s)
+func (f *Frame) ReadFrom(r io.Reader) (int64, error) {
+	return encoding.ReadFromAndPost(r, f)
+}
+
+func (f *Frame) PostUnmarshal() error {
+	var sf io.ReaderFrom
+	switch f.Command {
+	case CmdELP:
+		sf = &ELP{}
+	}
+
+	if sf == nil {
+		return nil
+	}
+
+	_, err := sf.ReadFrom(bytes.NewReader(f.RawPayload))
+	if err != nil {
+		return err
+	}
+	f.Payload = sf
+	f.RawPayload = nil
+	return nil
+}
+
+func (f *Frame) PreMarshal() error {
+	if f.Payload == nil {
+		return nil
+	}
+	b := bytes.NewBuffer(f.RawPayload)
+	_, err := f.Payload.(io.WriterTo).WriteTo(b)
+	f.RawPayload = b.Bytes()
+	return err
+}
+
+func (f *Frame) WriteTo(w io.Writer) (int64, error) {
+	return encoding.WriteToAndPre(w, f)
 }

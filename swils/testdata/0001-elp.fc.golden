@@ -1,0 +1,30 @@
+(*swils.Frame)({
+ Command: (swils.Command) 16,
+ RawPayload: ([]uint8) <nil>,
+ Payload: (*swils.ELP)({
+  Revision: (uint8) 2,
+  Flags: (uint16) 0,
+  BBSCN: (uint8) 0,
+  RATOV: (uint32) 10000,
+  EDTOV: (uint32) 2000,
+  Port: (common.WWN) (len=8 cap=8) 20:10:00:05:33:27:de:b5,
+  Switch: (common.WWN) (len=8 cap=8) 10:00:00:05:33:27:de:b5,
+  ClassFParameters: ([16]uint8) (len=16 cap=16) {
+   00000000  80 00 00 00 00 00 08 40  00 01 00 01 00 01 00 00  |.......@........|
+  },
+  Class2Parameters: ([4]uint8) (len=4 cap=4) {
+   00000000  88 00 08 40                                       |...@|
+  },
+  Class3Parameters: ([4]uint8) (len=4 cap=4) {
+   00000000  88 00 08 40                                       |...@|
+  },
+  ISLFlowControlMode: (uint16) 1,
+  FCParam: (common.Uint16SizedByteArray) (len=80 cap=80) {
+   00000000  00 00 00 10 00 00 08 40  00 00 27 10 00 00 07 d0  |.......@..'.....|
+   00000010  00 00 44 00 00 00 00 00  00 00 00 02 00 00 00 03  |..D.............|
+   00000020  00 00 00 07 00 00 00 c0  07 df 0b 1a 00 01 00 01  |................|
+   00000030  00 01 00 01 00 01 00 01  00 01 00 01 00 00 00 00  |................|
+   00000040  02 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+  }
+ })
+})

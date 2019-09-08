@@ -25,3 +25,7 @@ type ELP struct {
 func (s *ELP) ReadFrom(r io.Reader) (int64, error) {
 	return encoding.ReadFrom(r, s)
 }
+
+func (s *ELP) WriteTo(w io.Writer) (int64, error) {
+	return encoding.WriteTo(w, s)
+}

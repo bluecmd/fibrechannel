@@ -1,0 +1,7 @@
+(*swils.Frame)({
+ Command: (swils.Command) 1,
+ RawPayload: ([]uint8) (len=12 cap=1536) {
+  00000000  00 09 19 00 00 00 00 00  00 00 00 00              |............|
+ },
+ Payload: (interface {}) <nil>
+})

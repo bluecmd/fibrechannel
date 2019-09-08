@@ -30,3 +30,18 @@ func (p *Uint16SizedByteArray) ReadFrom(r io.Reader) (int64, error) {
 	}
 	return int64(n), nil
 }
+
+func (p *Uint16SizedByteArray) WriteTo(w io.Writer) (int64, error) {
+	s := uint16(len(*p))
+	if err := binary.Write(w, binary.BigEndian, &s); err != nil {
+		return 0, err
+	}
+	n, err := w.Write(*p)
+	if err != nil {
+		return int64(n), err
+	}
+	if n != int(s) {
+		return int64(n), io.EOF
+	}
+	return int64(n), nil
+}

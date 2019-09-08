@@ -9,6 +9,7 @@ import (
 
 	"github.com/bluecmd/fibrechannel/els"
 	"github.com/bluecmd/fibrechannel/encoding"
+	"github.com/bluecmd/fibrechannel/swils"
 )
 
 type SOF int
@@ -155,6 +156,8 @@ func (f *Frame) PostUnmarshal() error {
 	switch f.Type {
 	case TypeELS:
 		sf = &els.Frame{}
+	case TypeSWILS:
+		sf = &swils.Frame{}
 	}
 
 	if sf == nil {
