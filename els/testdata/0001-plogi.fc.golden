@@ -1,71 +1,58 @@
 (*els.Frame)({
- Command: (els.Command) 3,
- RawPayload: ([]uint8) <nil>,
+ cmd: (els.Command) CmdPLOGI <0x3> (N_Port login),
  Payload: (*els.PLOGI)({
-  LOGI: (els.LOGI) {
-   CommonSvcParams: (els.CommonSvcParams) {
-    FCPHVersion: (uint16) 8224,
-    B2BCredits: (uint16) 5,
-    Features: (els.CommonFeatures) 2147485696,
-    MaxConcurrentSeq: (uint16) 255,
-    RelOffsetInfoCat: (uint16) 31,
-    EDTOV: (uint32) 2000
+  CommonSvcParams: (els.PLOGICommonSvcParams) {
+   FCPHVersion: (uint16) 8224,
+   B2BCredits: (uint16) 5,
+   Features: (els.PLOGIFeatures) {
+    Data: (uint32) 2147485696
    },
-   PortName: (common.WWN) (len=8 cap=8) 21:00:00:24:ff:3d:39:a0,
-   NodeName: (common.WWN) (len=8 cap=8) 20:00:00:24:ff:3d:39:a0,
-   ClassSvcParams: ([3]els.ClassSvcParams) (len=3 cap=3) {
-    (els.ClassSvcParams) {
-     Service: (uint16) 0,
-     Initiator: (uint16) 0,
-     Recipient: (uint16) 0,
-     ReceiveDataFieldSize: (uint16) 0,
-     _: (uint8) 0,
-     ConcurrentSeq: (uint8) 0,
-     E2ECredits: (uint16) 0,
-     _: (uint8) 0,
-     OpenSeqPerExch: (uint8) 0,
-     _: (uint16) 0
-    },
-    (els.ClassSvcParams) {
-     Service: (uint16) 0,
-     Initiator: (uint16) 0,
-     Recipient: (uint16) 0,
-     ReceiveDataFieldSize: (uint16) 0,
-     _: (uint8) 0,
-     ConcurrentSeq: (uint8) 0,
-     E2ECredits: (uint16) 0,
-     _: (uint8) 0,
-     OpenSeqPerExch: (uint8) 0,
-     _: (uint16) 0
-    },
-    (els.ClassSvcParams) {
-     Service: (uint16) 32768,
-     Initiator: (uint16) 0,
-     Recipient: (uint16) 0,
-     ReceiveDataFieldSize: (uint16) 2048,
-     _: (uint8) 0,
-     ConcurrentSeq: (uint8) 255,
-     E2ECredits: (uint16) 0,
-     _: (uint8) 0,
-     OpenSeqPerExch: (uint8) 1,
-     _: (uint16) 0
-    }
-   },
-   AuxSvcParams: (els.ClassSvcParams) {
+   MaxConcurrentSeq: (uint16) 255,
+   RelOffsetInfoCat: (uint16) 31,
+   EDTOV: (uint32) 2000
+  },
+  PortName: (common.WWN) (len=8 cap=8) 21:00:00:24:ff:3d:39:a0,
+  NodeName: (common.WWN) (len=8 cap=8) 20:00:00:24:ff:3d:39:a0,
+  ClassSvcParams: ([3]els.PLOGIClassSvcParams) (len=3 cap=3) {
+   (els.PLOGIClassSvcParams) {
     Service: (uint16) 0,
     Initiator: (uint16) 0,
     Recipient: (uint16) 0,
     ReceiveDataFieldSize: (uint16) 0,
-    _: (uint8) 0,
     ConcurrentSeq: (uint8) 0,
     E2ECredits: (uint16) 0,
-    _: (uint8) 0,
-    OpenSeqPerExch: (uint8) 0,
-    _: (uint16) 0
+    OpenSeqPerExch: (uint8) 0
    },
-   VendorVersion: ([16]uint8) (len=16 cap=16) {
-    00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+   (els.PLOGIClassSvcParams) {
+    Service: (uint16) 0,
+    Initiator: (uint16) 0,
+    Recipient: (uint16) 0,
+    ReceiveDataFieldSize: (uint16) 0,
+    ConcurrentSeq: (uint8) 0,
+    E2ECredits: (uint16) 0,
+    OpenSeqPerExch: (uint8) 0
+   },
+   (els.PLOGIClassSvcParams) {
+    Service: (uint16) 32768,
+    Initiator: (uint16) 0,
+    Recipient: (uint16) 0,
+    ReceiveDataFieldSize: (uint16) 2048,
+    ConcurrentSeq: (uint8) 255,
+    E2ECredits: (uint16) 0,
+    OpenSeqPerExch: (uint8) 1
    }
+  },
+  AuxSvcParams: (els.PLOGIClassSvcParams) {
+   Service: (uint16) 0,
+   Initiator: (uint16) 0,
+   Recipient: (uint16) 0,
+   ReceiveDataFieldSize: (uint16) 0,
+   ConcurrentSeq: (uint8) 0,
+   E2ECredits: (uint16) 0,
+   OpenSeqPerExch: (uint8) 0
+  },
+  VendorVersion: ([16]uint8) (len=16 cap=16) {
+   00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
   }
  })
 })

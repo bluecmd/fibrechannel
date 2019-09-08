@@ -68,7 +68,7 @@ func (t *Struct) Consts() []NamedConstant {
 
 func (t *Struct) Functions() []Function {
 	rf := fmt.Sprintf("func (o *%s) ReadFrom(r io.Reader) (int64, error) {\n", t.Name)
-	rf += "_io := encoding.Reader{r}\n"
+	rf += "_io := encoding.Reader{R: r}\n"
 	for _, r := range t.Deser(t, "o") {
 		rf += string(r) + "\n"
 		rf += "if _io.Error != nil { return _io.Pos, _io.Error }\n"
@@ -76,7 +76,7 @@ func (t *Struct) Functions() []Function {
 	rf += "return _io.Pos, nil }"
 
 	wt := fmt.Sprintf("func (o *%s) WriteTo(w io.Writer) (int64, error) {\n", t.Name)
-	wt += "_io := encoding.Writer{r}\n"
+	wt += "_io := encoding.Writer{W: w}\n"
 	for _, r := range t.PreSer(t, "o") {
 		wt += string(r) + "\n"
 	}
@@ -86,17 +86,17 @@ func (t *Struct) Functions() []Function {
 	}
 	wt += "return _io.Pos, nil }"
 
-	return []Function{Function(rf), Function(wt)}
+	fcts := []Function{Function(rf), Function(wt)}
+	for _, f := range t.Fields {
+		fcts = append(fcts, f.Type.Functions()...)
+	}
+	return fcts
 }
 
 func (t *Struct) Deser(p Type, m string) []Statement {
 	o := []Statement{}
 	for _, f := range t.Fields {
-		if f.Name == "" {
-			o = append(o, f.Type.Deser(t, "")...)
-		} else {
-			o = append(o, f.Type.Deser(t, m+"."+f.Name)...)
-		}
+		o = append(o, f.Type.Deser(t, m+"."+f.Name)...)
 	}
 	return o
 }
@@ -106,7 +106,10 @@ func (t *Struct) TypeDefs() []TypeDef {
 	mine := "type " + t.Name + " struct { "
 	for _, f := range t.Fields {
 		td = append(td, f.Type.TypeDefs()...)
-		mine += fmt.Sprintf("%s %s\n", f.Name, f.Type.TypeName())
+		tn := f.Type.TypeName()
+		if tn != "" {
+			mine += fmt.Sprintf("%s %s\n", f.Name, tn)
+		}
 	}
 	mine += " }"
 	return append(td, TypeDef(mine))
@@ -115,11 +118,7 @@ func (t *Struct) TypeDefs() []TypeDef {
 func (t *Struct) PreSer(p Type, m string) []Statement {
 	o := []Statement{}
 	for _, f := range t.Fields {
-		if f.Name == "" {
-			o = append(o, f.Type.PreSer(t, "")...)
-		} else {
-			o = append(o, f.Type.PreSer(t, m+"."+f.Name)...)
-		}
+		o = append(o, f.Type.PreSer(t, m+"."+f.Name)...)
 	}
 	return o
 }
@@ -127,11 +126,7 @@ func (t *Struct) PreSer(p Type, m string) []Statement {
 func (t *Struct) Ser(p Type, m string) []Statement {
 	o := []Statement{}
 	for _, f := range t.Fields {
-		if f.Name == "" {
-			o = append(o, f.Type.Ser(t, "")...)
-		} else {
-			o = append(o, f.Type.Ser(t, m+"."+f.Name)...)
-		}
+		o = append(o, f.Type.Ser(t, m+"."+f.Name)...)
 	}
 	return o
 }
@@ -162,11 +157,18 @@ func (t *Enum) Consts() []NamedConstant {
 	for k, v := range t.Values {
 		n = append(n, NamedConstant{k, t.Name, v})
 	}
+	sort.Slice(n, func(i, j int) bool { return n[i].Value < n[j].Value })
 	return n
 }
 
 func (t *Enum) Functions() []Function {
-	return []Function{}
+	str := fmt.Sprintf("func (o *%s) String() string { switch *o {\n", t.Name)
+	for _, v := range t.Consts() {
+		str += fmt.Sprintf(" case 0x%x:\n", v.Value)
+		str += fmt.Sprintf("   return \"%s <0x%x> (%s)\"\n", v.Name, v.Value, v.Comment)
+	}
+	str += "default:\n\treturn fmt.Sprintf(\"--Invalid Enum Value-- <0x%x>\", *o)\n}}"
+	return []Function{Function(str)}
 }
 
 func (t *Enum) TypeDefs() []TypeDef {
@@ -174,7 +176,7 @@ func (t *Enum) TypeDefs() []TypeDef {
 }
 
 func (t *Enum) Deser(p Type, m string) []Statement {
-	return []Statement{Statement(fmt.Sprintf("_io.ReadUint%d(&%s)", t.Size, m))}
+	return []Statement{Statement(fmt.Sprintf("_io.ReadObject(&%s)", m))}
 }
 
 func (t *Enum) PreSer(p Type, m string) []Statement {
@@ -182,7 +184,7 @@ func (t *Enum) PreSer(p Type, m string) []Statement {
 }
 
 func (t *Enum) Ser(p Type, m string) []Statement {
-	return []Statement{Statement(fmt.Sprintf("_io.WriteUint%d(%s)", t.Size, m))}
+	return []Statement{Statement(fmt.Sprintf("_io.WriteObject(%s)", m))}
 }
 
 type SwitchedType struct {
@@ -219,7 +221,7 @@ func (t *SwitchedType) Deser(p Type, m string) []Statement {
 	for k, c := range t.Cases {
 		stmt += fmt.Sprintf("case %s:\n", k)
 		stmt += fmt.Sprintf("i := &%s{}\n", c.TypeName())
-		stmt += "if n, err := i.ReadFrom(_io.NewReader()); err != nil { return n, err }\n"
+		stmt += "if n, err := i.ReadFrom(&_io); err != nil { return n, err }\n"
 		stmt += fmt.Sprintf("%s = i\n", m)
 	}
 	stmt += "}\n"
@@ -231,7 +233,7 @@ func (t *SwitchedType) PreSer(p Type, m string) []Statement {
 	if t.SwitchedOn.Parent != p {
 		panic("Multi-level conditions not supported")
 	}
-	stmt := fmt.Sprintf("switch i := %s.(type) {\n", m)
+	stmt := fmt.Sprintf("switch %s.(type) {\n", m)
 	for k, c := range t.Cases {
 		stmt += fmt.Sprintf("case %s:\n", c.TypeName())
 		stmt += fmt.Sprintf("o.%s = %s\n", t.SwitchedOn.Name, k)
@@ -247,9 +249,11 @@ func (t *SwitchedType) Ser(p Type, m string) []Statement {
 	}
 	stmt := fmt.Sprintf("switch i := %s.(type) {\n", m)
 	for _, c := range t.Cases {
-		stmt += fmt.Sprintf("case %s:\n", c.TypeName())
-		stmt += "if n, err := i.WriteTo(_io.NewWriter()); err != nil { return n, err }\n"
+		stmt += fmt.Sprintf("case *%s:\n", c.TypeName())
+		stmt += "if n, err := i.WriteTo(&_io); err != nil { return n, err }\n"
 	}
+	stmt += "default:\n"
+	stmt += "  return _io.Pos, fmt.Errorf(\"Unsupported type %v\", i)\n"
 	stmt += "}\n"
 
 	return []Statement{Statement(stmt)}
@@ -284,10 +288,7 @@ func (t *Unsigned) bytes() int {
 }
 
 func (t *Unsigned) Deser(p Type, m string) []Statement {
-	if m == "" {
-		return []Statement{Statement(fmt.Sprintf("_io.Skip(%d)", t.bytes()))}
-	}
-	return []Statement{Statement(fmt.Sprintf("_io.ReadUint%d(&%s)", t.bytes()*8, m))}
+	return []Statement{Statement(fmt.Sprintf("_io.ReadObject(&%s)", m))}
 }
 
 func (t *Unsigned) PreSer(p Type, m string) []Statement {
@@ -295,10 +296,158 @@ func (t *Unsigned) PreSer(p Type, m string) []Statement {
 }
 
 func (t *Unsigned) Ser(p Type, m string) []Statement {
-	if m == "" {
-		return []Statement{Statement(fmt.Sprintf("_io.Skip(%d)", t.bytes()))}
+	return []Statement{Statement(fmt.Sprintf("_io.WriteObject(%s)", m))}
+}
+
+type ByteArray struct {
+	Count int
+}
+
+func (t *ByteArray) TypeName() string {
+	return fmt.Sprintf("[%d]byte", t.Count)
+}
+
+func (t *ByteArray) Consts() []NamedConstant {
+	return []NamedConstant{}
+}
+
+func (t *ByteArray) Functions() []Function {
+	return []Function{}
+}
+
+func (t *ByteArray) TypeDefs() []TypeDef {
+	return []TypeDef{}
+}
+
+func (t *ByteArray) Deser(p Type, m string) []Statement {
+	return []Statement{Statement(fmt.Sprintf("_io.ReadObject(&%s)", m))}
+}
+
+func (t *ByteArray) PreSer(p Type, m string) []Statement {
+	return []Statement{}
+}
+
+func (t *ByteArray) Ser(p Type, m string) []Statement {
+	return []Statement{Statement(fmt.Sprintf("_io.WriteObject(%s)", m))}
+}
+
+type Object struct {
+	Class string
+}
+
+func (t *Object) TypeName() string {
+	return t.Class
+}
+
+func (t *Object) Consts() []NamedConstant {
+	return []NamedConstant{}
+}
+
+func (t *Object) Functions() []Function {
+	return []Function{}
+}
+
+func (t *Object) TypeDefs() []TypeDef {
+	return []TypeDef{}
+}
+
+func (t *Object) Deser(p Type, m string) []Statement {
+	return []Statement{
+		Statement(fmt.Sprintf("if n, err := %s.ReadFrom(&_io); err != nil { return n, err }", m))}
+}
+
+func (t *Object) PreSer(p Type, m string) []Statement {
+	return []Statement{}
+}
+
+func (t *Object) Ser(p Type, m string) []Statement {
+	return []Statement{
+		Statement(fmt.Sprintf("if n, err := %s.WriteTo(&_io); err != nil { return n, err }", m))}
+}
+
+type Skip struct {
+	Size Size
+}
+
+func (t *Skip) TypeName() string {
+	return ""
+}
+
+func (t *Skip) Consts() []NamedConstant {
+	return []NamedConstant{}
+}
+
+func (t *Skip) Functions() []Function {
+	return []Function{}
+}
+
+func (t *Skip) TypeDefs() []TypeDef {
+	return []TypeDef{}
+}
+
+func (t *Skip) bytes() int {
+	odd := t.Size & 0x7
+	if odd != 0 {
+		return int(t.Size)/8 + 1
 	}
-	return []Statement{Statement(fmt.Sprintf("_io.WriteUint%d(%s)", t.bytes()*8, m))}
+	return int(t.Size) / 8
+}
+
+func (t *Skip) Deser(p Type, m string) []Statement {
+	return []Statement{Statement(fmt.Sprintf("_io.Skip(%d)", t.bytes()))}
+}
+
+func (t *Skip) PreSer(p Type, m string) []Statement {
+	return []Statement{}
+}
+
+func (t *Skip) Ser(p Type, m string) []Statement {
+	return []Statement{Statement(fmt.Sprintf("_io.Skip(%d)", t.bytes()))}
+}
+
+type Array struct {
+	Count int
+	Type Type
+}
+
+func (t *Array) TypeName() string {
+	return fmt.Sprintf("[%d]%s", t.Count, t.Type.TypeName())
+}
+
+func (t *Array) Consts() []NamedConstant {
+	return []NamedConstant{}
+}
+
+func (t *Array) Functions() []Function {
+	return []Function{}
+}
+
+func (t *Array) TypeDefs() []TypeDef {
+	return []TypeDef{}
+}
+
+func (t *Array) Deser(p Type, m string) []Statement {
+	stmt := []Statement{}
+	for i := 0; i < t.Count; i++ {
+		stmt = append(stmt, t.Type.Deser(t, m + fmt.Sprintf("[%d]", i))...)
+	}
+	return stmt
+}
+
+func (t *Array) PreSer(p Type, m string) []Statement {
+	stmt := []Statement{}
+	for i := 0; i < t.Count; i++ {
+		stmt = append(stmt, t.Type.PreSer(t, m + fmt.Sprintf("[%d]", i))...)
+	}
+	return stmt
+}
+
+func (t *Array) Ser(p Type, m string) []Statement {
+	stmt := []Statement{}
+	for i := 0; i < t.Count; i++ {
+		stmt = append(stmt, t.Type.Ser(t, m + fmt.Sprintf("[%d]", i))...)
+	}
+	return stmt
 }
 
 func NewStruct(n string) *Struct {
@@ -307,7 +456,7 @@ func NewStruct(n string) *Struct {
 	}
 }
 
-func Generate(pkg string, ts ...Type) ([]byte, error) {
+func Generate(pkg string, imports []string, ts ...Type) ([]byte, error) {
 	consts := []NamedConstant{}
 	typedefs := []TypeDef{}
 	funcs := []Function{}
@@ -324,6 +473,8 @@ func Generate(pkg string, ts ...Type) ([]byte, error) {
 		}
 		return consts[i].Value < consts[j].Value
 	})
+	sort.Slice(typedefs, func(i, j int) bool { return typedefs[i] < typedefs[j] })
+	sort.Slice(funcs, func(i, j int) bool { return funcs[i] < funcs[j] })
 
 	doc := new(bytes.Buffer)
 	bw := bufio.NewWriter(doc)
@@ -332,28 +483,50 @@ func Generate(pkg string, ts ...Type) ([]byte, error) {
 	bw.WriteString("\n")
 	bw.WriteString(fmt.Sprintf("package %s", pkg))
 	bw.WriteString("\n")
+	bw.WriteString("import (\n")
+	bw.WriteString("\"io\"\n")
+	bw.WriteString("\"fmt\"\n")
+	bw.WriteString("\n")
+	bw.WriteString("\"github.com/bluecmd/fibrechannel/encoding\"\n")
+	for _, i := range imports {
+		bw.WriteString(fmt.Sprintf("\"%s\"\n", i))
+	}
+	bw.WriteString(")\n")
+	bw.WriteString("\n")
 	bw.WriteString("const (\n")
 
 	d := ""
+	p := ""
 	for _, c := range consts {
 		if c.Domain != d && d != "" {
 			bw.WriteString("\n")
 		}
 		d = c.Domain
+		if p == c.Name {
+			continue
+		}
+		p = c.Name
 		bw.WriteString(fmt.Sprintf("\t%s = 0x%x // %s\n", c.Name, c.Value, c.Comment))
 	}
 	bw.WriteString(")\n")
 
 	for _, td := range typedefs {
+		if p == string(td) {
+			continue
+		}
+		p = string(td)
 		bw.WriteString(fmt.Sprintf("%s\n\n", td))
 	}
 
 	for _, f := range funcs {
+		if p == string(f) {
+			continue
+		}
+		p = string(f)
 		bw.WriteString(fmt.Sprintf("%s\n\n", f))
 	}
 
 	bw.Flush()
 
-	fmt.Print(string(doc.Bytes()))
 	return format.Source(doc.Bytes())
 }

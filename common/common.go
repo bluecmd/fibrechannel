@@ -13,6 +13,20 @@ func (s *WWN) String() string {
 		s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7])
 }
 
+func (s *WWN) ReadFrom(r io.Reader) (int64, error) {
+	if err := binary.Read(r, binary.BigEndian, s); err != nil {
+		return 0, err
+	}
+	return 8, nil
+}
+
+func (s *WWN) WriteTo(w io.Writer) (int64, error) {
+	if err := binary.Write(w, binary.BigEndian, s); err != nil {
+		return 0, err
+	}
+	return 8, nil
+}
+
 type Uint16SizedByteArray []byte
 
 func (p *Uint16SizedByteArray) ReadFrom(r io.Reader) (int64, error) {

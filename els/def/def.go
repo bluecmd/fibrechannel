@@ -9,40 +9,43 @@ import (
 
 func defPLOGI() e.Type {
 	plogi := e.NewStruct("PLOGI")
+	plogi.Field("", &e.Skip{3 * e.Bytes})
 
 	features := e.NewStruct("PLOGIFeatures")
+	features.Field("Data", e.Uint32)
 
 	common := e.NewStruct("PLOGICommonSvcParams")
 	common.Field("FCPHVersion", e.Uint16)
 	common.Field("B2BCredits", e.Uint16)
 	common.Field("Features", features)
 	common.Field("MaxConcurrentSeq", e.Uint16)
-	common.Field("EDTOV", e.Uint16)
+	common.Field("RelOffsetInfoCat", e.Uint16)
+	common.Field("EDTOV", e.Uint32)
 
 	class := e.NewStruct("PLOGIClassSvcParams")
 	class.Field("Service", e.Uint16)
 	class.Field("Initiator", e.Uint16)
 	class.Field("Recipient", e.Uint16)
 	class.Field("ReceiveDataFieldSize", &e.Unsigned{12 * e.Bits})
-	class.Field("", e.Uint8)
+	class.Field("", &e.Skip{1 * e.Bytes})
 	class.Field("ConcurrentSeq", e.Uint8)
 	class.Field("E2ECredits", e.Uint16)
-	class.Field("", e.Uint8)
+	class.Field("", &e.Skip{1 * e.Bytes})
 	class.Field("OpenSeqPerExch", e.Uint8)
-	class.Field("", e.Uint16)
+	class.Field("", &e.Skip{2 * e.Bytes})
 
 	plogi.Field("CommonSvcParams", common)
-	//plogi.Field("PortName", &e.CustomClass{"common.WWN"})
-	//plogi.Field("NodeName", &e.CustomClass{"common.WWN"})
-	//plogi.Field("ClassSvcParams", e.Array(3, class))
+	plogi.Field("PortName", &e.Object{"common.WWN"})
+	plogi.Field("NodeName", &e.Object{"common.WWN"})
+	plogi.Field("ClassSvcParams", &e.Array{3, class})
 	plogi.Field("AuxSvcParams", class)
-	//plogi.Field("VendorVersion", &e.Bytes{16})
+	plogi.Field("VendorVersion", &e.ByteArray{16})
 
 	return plogi
 }
 
 func main() {
-	els := e.NewStruct("ELS")
+	els := e.NewStruct("Frame")
 
 	rctl := &e.Enum{
 		Name: "Route",
@@ -128,7 +131,10 @@ func main() {
 	}}
 	els.Field("Payload", payload)
 
-	b, err := e.Generate("els", els, rctl, plogi)
+	imports := []string{
+		"github.com/bluecmd/fibrechannel/common",
+	}
+	b, err := e.Generate("els", imports, els, rctl, plogi)
 	if err != nil {
 		log.Fatalf("Generate failed: %v", err)
 	}

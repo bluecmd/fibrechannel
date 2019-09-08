@@ -11,8 +11,20 @@ import (
 func TestNilBuffer(t *testing.T) {
 	c := &Frame{}
 	_, err := c.ReadFrom(bytes.NewReader([]byte{}))
-	if err != io.ErrUnexpectedEOF {
-		t.Fatalf("got unexpected error %v, wanted io.ErrUnexpectedEOF", err)
+	if err != io.EOF {
+		t.Fatalf("got unexpected error %v, wanted io.EOF", err)
+	}
+}
+
+func TestUnsupportedCmd(t *testing.T) {
+	c := &Frame{}
+	_, err := c.ReadFrom(bytes.NewReader([]byte{0xff}))
+	if err != nil {
+		t.Fatalf("got error %v, expected no error", err)
+	}
+	_, err = c.WriteTo(new(bytes.Buffer))
+	if err == nil {
+		t.Fatalf("got no error, expected one")
 	}
 }
 

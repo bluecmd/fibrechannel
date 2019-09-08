@@ -1,7 +1,0 @@
-(*els.Frame)({
- Command: (els.Command) 255,
- RawPayload: ([]uint8) (len=1 cap=1536) {
-  00000000  01                                                |.|
- },
- Payload: (interface {}) <nil>
-})
