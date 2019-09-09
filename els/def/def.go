@@ -11,16 +11,43 @@ func defPLOGI() e.Type {
 	plogi := e.NewStruct("PLOGI")
 	plogi.Field("", &e.Skip{3 * e.Bytes})
 
-	features := e.NewStruct("PLOGIFeatures")
-	features.Field("Data", e.Uint32)
+	common := e.NewBitStruct("PLOGICommonSvcParams")
 
-	common := e.NewStruct("PLOGICommonSvcParams")
-	common.Field("FCPHVersion", e.Uint16)
-	common.Field("B2BCredits", e.Uint16)
-	common.Field("Features", features)
-	common.Field("MaxConcurrentSeq", e.Uint16)
-	common.Field("RelOffsetInfoCat", e.Uint16)
-	common.Field("EDTOV", e.Uint32)
+	// Word 0
+	common.IntField("FCPHVersion", 16) // 31-16
+	common.IntField("B2BCredits", 16)  // 15-0
+
+	// Word 1
+	common.BoolBit("ContIncrRelOffset")       // 31
+	common.BoolBit("RandomRelOffset")         // 30
+	common.BoolBit("ValidVendorVersionLevel") // 29
+	// N_Port/F_Port=0 for an N_Port, and N_Port/F_Port=1 for an F_Port
+	common.BoolBit("NorFPort") // 28
+	// BB_Credit Management=0 for an N_Port or F_Port, BB_Credit_Management=1 for an L_Port
+	common.BoolBit("BBCreditMgmt")               // 27
+	common.BoolBit("EDTOVResolution")            // 26
+	common.BoolBit("EnergyEffLPIModeSupported")  // 25
+	common.SkipBit(1)                            // 24
+	common.BoolBit("PriorityTaggingSupported")   // 23
+	common.BoolBit("QueryDataBufferCond")        // 22
+	common.BoolBit("SecurityBit")                // 21
+	common.BoolBit("ClockSyncPrimitiveCapable")  // 20
+	common.BoolBit("RTTOVValue")                 // 19
+	common.BoolBit("DynamicHalfDuplexSupported") // 18
+	common.BoolBit("SeqCntVendorSpec")           // 17
+	common.BoolBit("PayloadBit")                 // 16
+	common.IntField("BBSCN", 4)                  // 15-12
+	common.IntField("B2BRecvDataFieldSize", 12)  // 11-0
+
+	// Word 2
+	common.SkipBit(5)                              // 31-27
+	common.BoolBit("AppHdrSupport")                // 27
+	common.SkipBit(2)                              // 25-24
+	common.IntField("NxPortTotalConcurrentSeq", 8) // 23-16
+	common.IntField("RelOffsetInfoCat", 16)        // 15-0
+
+	// Word 3
+	common.IntField("EDTOV", 32)
 
 	class := e.NewStruct("PLOGIClassSvcParams")
 	class.Field("Service", e.Uint16)
@@ -136,6 +163,7 @@ func main() {
 	}
 	b, err := e.Generate("els", imports, els, rctl, plogi)
 	if err != nil {
+		os.Stdout.Write(b)
 		log.Fatalf("Generate failed: %v", err)
 	}
 	os.Stdout.Write(b)

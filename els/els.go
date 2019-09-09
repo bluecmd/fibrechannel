@@ -105,16 +105,29 @@ type PLOGIClassSvcParams struct {
 }
 
 type PLOGICommonSvcParams struct {
-	FCPHVersion      uint16
-	B2BCredits       uint16
-	Features         PLOGIFeatures
-	MaxConcurrentSeq uint16
-	RelOffsetInfoCat uint16
-	EDTOV            uint32
-}
-
-type PLOGIFeatures struct {
-	Data uint32
+	FCPHVersion                int
+	B2BCredits                 int
+	ContIncrRelOffset          bool
+	RandomRelOffset            bool
+	ValidVendorVersionLevel    bool
+	NorFPort                   bool
+	BBCreditMgmt               bool
+	EDTOVResolution            bool
+	EnergyEffLPIModeSupported  bool
+	PriorityTaggingSupported   bool
+	QueryDataBufferCond        bool
+	SecurityBit                bool
+	ClockSyncPrimitiveCapable  bool
+	RTTOVValue                 bool
+	DynamicHalfDuplexSupported bool
+	SeqCntVendorSpec           bool
+	PayloadBit                 bool
+	BBSCN                      int
+	B2BRecvDataFieldSize       int
+	AppHdrSupport              bool
+	NxPortTotalConcurrentSeq   int
+	RelOffsetInfoCat           int
+	EDTOV                      int
 }
 
 type Route uint8
@@ -299,27 +312,36 @@ func (o *PLOGI) ReadFrom(r io.Reader) (int64, error) {
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
 	}
-	_io.ReadObject(&o.CommonSvcParams.FCPHVersion)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
+	{
+		var bs [16]byte
+		_io.Read(bs[:])
+		if _io.Error != nil {
+			return _io.Pos, _io.Error
+		}
+		o.CommonSvcParams.FCPHVersion = (0 | int(bs[0]&0xff)<<8 | int(bs[1]&0xff))
+		o.CommonSvcParams.B2BCredits = (0 | int(bs[2]&0xff)<<8 | int(bs[3]&0xff))
+		o.CommonSvcParams.ContIncrRelOffset = (0 | int(bs[4]&0x80)) == 0x80
+		o.CommonSvcParams.RandomRelOffset = (0 | int(bs[4]&0x40)) == 0x40
+		o.CommonSvcParams.ValidVendorVersionLevel = (0 | int(bs[4]&0x20)) == 0x20
+		o.CommonSvcParams.NorFPort = (0 | int(bs[4]&0x10)) == 0x10
+		o.CommonSvcParams.BBCreditMgmt = (0 | int(bs[4]&0x8)) == 0x8
+		o.CommonSvcParams.EDTOVResolution = (0 | int(bs[4]&0x4)) == 0x4
+		o.CommonSvcParams.EnergyEffLPIModeSupported = (0 | int(bs[4]&0x2)) == 0x2
+		o.CommonSvcParams.PriorityTaggingSupported = (0 | int(bs[5]&0x80)) == 0x80
+		o.CommonSvcParams.QueryDataBufferCond = (0 | int(bs[5]&0x40)) == 0x40
+		o.CommonSvcParams.SecurityBit = (0 | int(bs[5]&0x20)) == 0x20
+		o.CommonSvcParams.ClockSyncPrimitiveCapable = (0 | int(bs[5]&0x10)) == 0x10
+		o.CommonSvcParams.RTTOVValue = (0 | int(bs[5]&0x8)) == 0x8
+		o.CommonSvcParams.DynamicHalfDuplexSupported = (0 | int(bs[5]&0x4)) == 0x4
+		o.CommonSvcParams.SeqCntVendorSpec = (0 | int(bs[5]&0x2)) == 0x2
+		o.CommonSvcParams.PayloadBit = (0 | int(bs[5]&0x1)) == 0x1
+		o.CommonSvcParams.BBSCN = ((0 | int(bs[6]&0xf0)) >> 4)
+		o.CommonSvcParams.B2BRecvDataFieldSize = (0 | int(bs[6]&0xf)<<8 | int(bs[7]&0xff))
+		o.CommonSvcParams.AppHdrSupport = (0 | int(bs[8]&0x4)) == 0x4
+		o.CommonSvcParams.NxPortTotalConcurrentSeq = (0 | int(bs[9]&0xff))
+		o.CommonSvcParams.RelOffsetInfoCat = (0 | int(bs[10]&0xff)<<8 | int(bs[11]&0xff))
+		o.CommonSvcParams.EDTOV = (0 | int(bs[12]&0xff)<<24 | int(bs[13]&0xff)<<16 | int(bs[14]&0xff)<<8 | int(bs[15]&0xff))
 	}
-	_io.ReadObject(&o.CommonSvcParams.B2BCredits)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.CommonSvcParams.Features.Data)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.CommonSvcParams.MaxConcurrentSeq)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.CommonSvcParams.RelOffsetInfoCat)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.CommonSvcParams.EDTOV)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
 	}
@@ -508,27 +530,32 @@ func (o *PLOGI) WriteTo(w io.Writer) (int64, error) {
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
 	}
-	_io.WriteObject(o.CommonSvcParams.FCPHVersion)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
+	{
+		var bs [16]byte
+		bool2int := func(v bool) int {
+			if v {
+				return 1
+			}
+			return 0
+		}
+		bs[0] = byte(0 | ((int(o.CommonSvcParams.FCPHVersion))>>8)&0xff)
+		bs[1] = byte(0 | (int(o.CommonSvcParams.FCPHVersion))&0xff)
+		bs[2] = byte(0 | ((int(o.CommonSvcParams.B2BCredits))>>8)&0xff)
+		bs[3] = byte(0 | (int(o.CommonSvcParams.B2BCredits))&0xff)
+		bs[4] = byte(0 | (bool2int(o.CommonSvcParams.ContIncrRelOffset)<<7)&0x80 | (bool2int(o.CommonSvcParams.RandomRelOffset)<<6)&0x40 | (bool2int(o.CommonSvcParams.ValidVendorVersionLevel)<<5)&0x20 | (bool2int(o.CommonSvcParams.NorFPort)<<4)&0x10 | (bool2int(o.CommonSvcParams.BBCreditMgmt)<<3)&0x8 | (bool2int(o.CommonSvcParams.EDTOVResolution)<<2)&0x4 | (bool2int(o.CommonSvcParams.EnergyEffLPIModeSupported)<<1)&0x2)
+		bs[5] = byte(0 | (bool2int(o.CommonSvcParams.PriorityTaggingSupported)<<7)&0x80 | (bool2int(o.CommonSvcParams.QueryDataBufferCond)<<6)&0x40 | (bool2int(o.CommonSvcParams.SecurityBit)<<5)&0x20 | (bool2int(o.CommonSvcParams.ClockSyncPrimitiveCapable)<<4)&0x10 | (bool2int(o.CommonSvcParams.RTTOVValue)<<3)&0x8 | (bool2int(o.CommonSvcParams.DynamicHalfDuplexSupported)<<2)&0x4 | (bool2int(o.CommonSvcParams.SeqCntVendorSpec)<<1)&0x2 | (bool2int(o.CommonSvcParams.PayloadBit))&0x1)
+		bs[6] = byte(0 | (int(o.CommonSvcParams.BBSCN)<<4)&0xf0 | ((int(o.CommonSvcParams.B2BRecvDataFieldSize))>>8)&0xf)
+		bs[7] = byte(0 | (int(o.CommonSvcParams.B2BRecvDataFieldSize))&0xff)
+		bs[8] = byte(0 | (bool2int(o.CommonSvcParams.AppHdrSupport)<<2)&0x4)
+		bs[9] = byte(0 | (int(o.CommonSvcParams.NxPortTotalConcurrentSeq))&0xff)
+		bs[10] = byte(0 | ((int(o.CommonSvcParams.RelOffsetInfoCat))>>8)&0xff)
+		bs[11] = byte(0 | (int(o.CommonSvcParams.RelOffsetInfoCat))&0xff)
+		bs[12] = byte(0 | ((int(o.CommonSvcParams.EDTOV))>>24)&0xff)
+		bs[13] = byte(0 | ((int(o.CommonSvcParams.EDTOV))>>16)&0xff)
+		bs[14] = byte(0 | ((int(o.CommonSvcParams.EDTOV))>>8)&0xff)
+		bs[15] = byte(0 | (int(o.CommonSvcParams.EDTOV))&0xff)
+		_io.Write(bs[:])
 	}
-	_io.WriteObject(o.CommonSvcParams.B2BCredits)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.CommonSvcParams.Features.Data)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.CommonSvcParams.MaxConcurrentSeq)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.CommonSvcParams.RelOffsetInfoCat)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.CommonSvcParams.EDTOV)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
 	}
@@ -795,82 +822,6 @@ func (o *PLOGIClassSvcParams) WriteTo(w io.Writer) (int64, error) {
 		return _io.Pos, _io.Error
 	}
 	_io.Skip(2)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	return _io.Pos, nil
-}
-
-func (o *PLOGICommonSvcParams) ReadFrom(r io.Reader) (int64, error) {
-	_io := encoding.Reader{R: r}
-	_io.ReadObject(&o.FCPHVersion)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.B2BCredits)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.Features.Data)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.MaxConcurrentSeq)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.RelOffsetInfoCat)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.ReadObject(&o.EDTOV)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	return _io.Pos, nil
-}
-
-func (o *PLOGICommonSvcParams) WriteTo(w io.Writer) (int64, error) {
-	_io := encoding.Writer{W: w}
-	_io.WriteObject(o.FCPHVersion)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.B2BCredits)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.Features.Data)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.MaxConcurrentSeq)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.RelOffsetInfoCat)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	_io.WriteObject(o.EDTOV)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	return _io.Pos, nil
-}
-
-func (o *PLOGIFeatures) ReadFrom(r io.Reader) (int64, error) {
-	_io := encoding.Reader{R: r}
-	_io.ReadObject(&o.Data)
-	if _io.Error != nil {
-		return _io.Pos, _io.Error
-	}
-	return _io.Pos, nil
-}
-
-func (o *PLOGIFeatures) WriteTo(w io.Writer) (int64, error) {
-	_io := encoding.Writer{W: w}
-	_io.WriteObject(o.Data)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
 	}

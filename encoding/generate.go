@@ -528,5 +528,9 @@ func Generate(pkg string, imports []string, ts ...Type) ([]byte, error) {
 
 	bw.Flush()
 
-	return format.Source(doc.Bytes())
+	out, err := format.Source(doc.Bytes())
+	if err != nil {
+		return doc.Bytes(), err
+	}
+	return out, nil
 }

@@ -2,14 +2,29 @@
  cmd: (els.Command) CmdPLOGI <0x3> (N_Port login),
  Payload: (*els.PLOGI)({
   CommonSvcParams: (els.PLOGICommonSvcParams) {
-   FCPHVersion: (uint16) 8224,
-   B2BCredits: (uint16) 5,
-   Features: (els.PLOGIFeatures) {
-    Data: (uint32) 2147485696
-   },
-   MaxConcurrentSeq: (uint16) 255,
-   RelOffsetInfoCat: (uint16) 31,
-   EDTOV: (uint32) 2000
+   FCPHVersion: (int) 8224,
+   B2BCredits: (int) 5,
+   ContIncrRelOffset: (bool) true,
+   RandomRelOffset: (bool) false,
+   ValidVendorVersionLevel: (bool) false,
+   NorFPort: (bool) false,
+   BBCreditMgmt: (bool) false,
+   EDTOVResolution: (bool) false,
+   EnergyEffLPIModeSupported: (bool) false,
+   PriorityTaggingSupported: (bool) false,
+   QueryDataBufferCond: (bool) false,
+   SecurityBit: (bool) false,
+   ClockSyncPrimitiveCapable: (bool) false,
+   RTTOVValue: (bool) false,
+   DynamicHalfDuplexSupported: (bool) false,
+   SeqCntVendorSpec: (bool) false,
+   PayloadBit: (bool) false,
+   BBSCN: (int) 0,
+   B2BRecvDataFieldSize: (int) 2048,
+   AppHdrSupport: (bool) false,
+   NxPortTotalConcurrentSeq: (int) 255,
+   RelOffsetInfoCat: (int) 31,
+   EDTOV: (int) 2000
   },
   PortName: (common.WWN) (len=8 cap=8) 21:00:00:24:ff:3d:39:a0,
   NodeName: (common.WWN) (len=8 cap=8) 20:00:00:24:ff:3d:39:a0,
