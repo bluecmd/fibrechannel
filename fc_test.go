@@ -30,17 +30,23 @@ func BenchmarkUnmarshal(b *testing.B) {
 	f := new(Frame)
 	for n := 0; n < b.N; n++ {
 		buf.Seek(0, io.SeekStart)
-		f.ReadFrom(buf)
+		_, err := f.ReadFrom(buf)
+		if err != nil {
+			b.Fatalf("err: %v", err)
+		}
 	}
 }
 
 func BenchmarkMarshal(b *testing.B) {
 	buf := new(bytes.Buffer)
 	buf.Grow(10000)
-	f := &Frame{Payload: &els.Frame{Payload: &els.PLOGI{}}}
+	f := &Frame{CsctlPriority: &CSCtl{}, Payload: &els.Frame{Payload: &els.PLOGI{}}}
 	for n := 0; n < b.N; n++ {
 		buf.Reset()
-		f.WriteTo(buf)
+		_, err := f.WriteTo(buf)
+		if err != nil {
+			b.Fatalf("err: %v", err)
+		}
 	}
 }
 
