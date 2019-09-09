@@ -306,7 +306,7 @@ func (t *SwitchedType) Deser(p Context, m string) ([]Statement, error) {
 	}
 	stmt += "}\n"
 	if t.Size != RemainingBytes {
-		stmt += fmt.Sprintf("return %d, nil})\n", t.Size / 8)
+		stmt += fmt.Sprintf("return %d, nil})\n", t.Size/8)
 	}
 
 	return []Statement{Statement(stmt)}, nil
