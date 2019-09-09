@@ -4,12 +4,15 @@
 package els
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 
 	"github.com/bluecmd/fibrechannel/common"
 	"github.com/bluecmd/fibrechannel/encoding"
 )
+
+var _ = bytes.NewReader
 
 const (
 	CmdLSRJT     = 0x1  // ESL reject
@@ -261,6 +264,7 @@ func (o *Command) String() string {
 
 func (o *Frame) ReadFrom(r io.Reader) (int64, error) {
 	_io := encoding.Reader{R: r}
+	fixup := []func() (int64, error){}
 	_io.ReadObject(&o.cmd)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
@@ -276,6 +280,11 @@ func (o *Frame) ReadFrom(r io.Reader) (int64, error) {
 
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
+	}
+	for _, f := range fixup {
+		if _, err := f(); err != nil {
+			return _io.Pos, err
+		}
 	}
 	return _io.Pos, nil
 }
@@ -308,6 +317,7 @@ func (o *Frame) WriteTo(w io.Writer) (int64, error) {
 
 func (o *PLOGI) ReadFrom(r io.Reader) (int64, error) {
 	_io := encoding.Reader{R: r}
+	fixup := []func() (int64, error){}
 	_io.Skip(3)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
@@ -520,6 +530,11 @@ func (o *PLOGI) ReadFrom(r io.Reader) (int64, error) {
 	_io.ReadObject(&o.VendorVersion)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
+	}
+	for _, f := range fixup {
+		if _, err := f(); err != nil {
+			return _io.Pos, err
+		}
 	}
 	return _io.Pos, nil
 }
@@ -740,6 +755,7 @@ func (o *PLOGI) WriteTo(w io.Writer) (int64, error) {
 
 func (o *PLOGIClassSvcParams) ReadFrom(r io.Reader) (int64, error) {
 	_io := encoding.Reader{R: r}
+	fixup := []func() (int64, error){}
 	_io.ReadObject(&o.Service)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
@@ -779,6 +795,11 @@ func (o *PLOGIClassSvcParams) ReadFrom(r io.Reader) (int64, error) {
 	_io.Skip(2)
 	if _io.Error != nil {
 		return _io.Pos, _io.Error
+	}
+	for _, f := range fixup {
+		if _, err := f(); err != nil {
+			return _io.Pos, err
+		}
 	}
 	return _io.Pos, nil
 }

@@ -6,15 +6,15 @@ import (
 )
 
 type Reader struct {
-	R io.Reader
+	R     io.Reader
 	Error error
-	Pos int64
+	Pos   int64
 }
 
 type Writer struct {
-	W io.Writer
+	W     io.Writer
 	Error error
-	Pos int64
+	Pos   int64
 }
 
 func (r *Reader) Read(b []byte) (int, error) {
@@ -28,7 +28,7 @@ func (r *Reader) Read(b []byte) (int, error) {
 }
 
 func (r *Reader) Skip(n int) {
-	n, err := r.R.Read(make([]byte, n));
+	n, err := r.R.Read(make([]byte, n))
 	if err != nil {
 		r.Error = err
 	}

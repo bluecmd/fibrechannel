@@ -153,7 +153,7 @@ func main() {
 
 	fcmd := els.Field("cmd", cmd)
 
-	payload := &e.SwitchedType{"Payload", fcmd, map[string]e.Type{
+	payload := &e.SwitchedType{"Payload", e.RemainingBytes, fcmd, map[string]e.Type{
 		"CmdPLOGI": plogi,
 	}}
 	els.Field("Payload", payload)
