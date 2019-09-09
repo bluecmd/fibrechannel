@@ -42,21 +42,21 @@ func main() {
 		Name: "Type",
 		Size: 1 * e.Bytes,
 		Values: map[string]e.Constant{
-			"TypeBLS      ": e.Constant{0x00, "TODO"},
-			"TypeELS      ": e.Constant{0x01, "TODO"},
-			"TypeLLCSNAP  ": e.Constant{0x04, "TODO"},
-			"TypeIP       ": e.Constant{0x05, "TODO"},
-			"TypeFCP      ": e.Constant{0x08, "TODO"},
-			"TypeGPP      ": e.Constant{0x09, "TODO"},
-			"TypeSBToCU   ": e.Constant{0x1B, "FICON / FC-SB-3: Control Unit -> Channel"},
-			"TypeSBFromCU ": e.Constant{0x1C, "FICON / FC-SB-3: Channel -> Control Unit"},
-			"TypeFCCT     ": e.Constant{0x20, "TODO"},
-			"TypeSWILS    ": e.Constant{0x22, "TODO"},
-			"TypeAL       ": e.Constant{0x23, "TODO"},
-			"TypeSNMP     ": e.Constant{0x24, "TODO"},
-			"TypeNVME     ": e.Constant{0x28, "TODO"},
-			"TypeSPINFAB  ": e.Constant{0xEE, "TODO"},
-			"TypeDIAG     ": e.Constant{0xEF, "TODO"},
+			"TypeBLS":      e.Constant{0x00, "TODO"},
+			"TypeELS":      e.Constant{0x01, "TODO"},
+			"TypeLLCSNAP":  e.Constant{0x04, "TODO"},
+			"TypeIP":       e.Constant{0x05, "TODO"},
+			"TypeFCP":      e.Constant{0x08, "TODO"},
+			"TypeGPP":      e.Constant{0x09, "TODO"},
+			"TypeSBToCU":   e.Constant{0x1B, "FICON / FC-SB-3: Control Unit -> Channel"},
+			"TypeSBFromCU": e.Constant{0x1C, "FICON / FC-SB-3: Channel -> Control Unit"},
+			"TypeFCCT":     e.Constant{0x20, "TODO"},
+			"TypeSWILS":    e.Constant{0x22, "TODO"},
+			"TypeAL":       e.Constant{0x23, "TODO"},
+			"TypeSNMP":     e.Constant{0x24, "TODO"},
+			"TypeNVME":     e.Constant{0x28, "TODO"},
+			"TypeSPINFAB":  e.Constant{0xEE, "TODO"},
+			"TypeDIAG":     e.Constant{0xEF, "TODO"},
 		}}
 
 	fctl := e.NewBitStruct("FrameControl")
@@ -67,7 +67,7 @@ func main() {
 	fc.Field("RCtl", e.Uint8)
 	// Address for source/destination Nx_Ports
 	// Each Nx_Port shall have a native N_Port_ID that is unique within the
-	// address domain of a Fabric.  An N_Port_ID of binary zeros indicates that
+	// address domain of a Fabric. An N_Port_ID of binary zeros indicates that
 	// an Nx_Port is unidentified. When a PN_Port completes Link Initialization,
 	// it shall be unidentified (i.e., it shall have a single Nx_Port for which
 	// the N_Port_ID is 00 00 00h).

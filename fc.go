@@ -149,14 +149,14 @@ func (o *Frame) ReadFrom(r io.Reader) (int64, error) {
 	fixup = append(fixup, func() (int64, error) {
 		_io := encoding.Reader{R: bytes.NewReader(__o_CsctlPriority_CsctlPriority[:])}
 		switch o.FCtl.PriorityEnable {
-		case true:
-			i := &Prio{}
+		case false:
+			i := &CSCtl{}
 			if n, err := i.ReadFrom(&_io); err != nil {
 				return n, err
 			}
 			o.CsctlPriority = i
-		case false:
-			i := &CSCtl{}
+		case true:
+			i := &Prio{}
 			if n, err := i.ReadFrom(&_io); err != nil {
 				return n, err
 			}
@@ -236,10 +236,10 @@ func (o *Frame) ReadFrom(r io.Reader) (int64, error) {
 func (o *Frame) WriteTo(w io.Writer) (int64, error) {
 	_io := encoding.Writer{W: w}
 	switch o.CsctlPriority.(type) {
-	case Prio:
-		o.FCtl.PriorityEnable = true
 	case CSCtl:
 		o.FCtl.PriorityEnable = false
+	case Prio:
+		o.FCtl.PriorityEnable = true
 	}
 
 	switch o.Payload.(type) {
@@ -256,11 +256,11 @@ func (o *Frame) WriteTo(w io.Writer) (int64, error) {
 		return _io.Pos, _io.Error
 	}
 	switch i := o.CsctlPriority.(type) {
-	case *CSCtl:
+	case *Prio:
 		if n, err := i.WriteTo(&_io); err != nil {
 			return n, err
 		}
-	case *Prio:
+	case *CSCtl:
 		if n, err := i.WriteTo(&_io); err != nil {
 			return n, err
 		}
@@ -384,35 +384,35 @@ func (o *SOF) String() string {
 func (o *Type) String() string {
 	switch *o {
 	case 0x0:
-		return "TypeBLS       <0x0> (TODO)"
+		return "TypeBLS <0x0> (TODO)"
 	case 0x1:
-		return "TypeELS       <0x1> (TODO)"
+		return "TypeELS <0x1> (TODO)"
 	case 0x4:
-		return "TypeLLCSNAP   <0x4> (TODO)"
+		return "TypeLLCSNAP <0x4> (TODO)"
 	case 0x5:
-		return "TypeIP        <0x5> (TODO)"
+		return "TypeIP <0x5> (TODO)"
 	case 0x8:
-		return "TypeFCP       <0x8> (TODO)"
+		return "TypeFCP <0x8> (TODO)"
 	case 0x9:
-		return "TypeGPP       <0x9> (TODO)"
+		return "TypeGPP <0x9> (TODO)"
 	case 0x1b:
-		return "TypeSBToCU    <0x1b> (FICON / FC-SB-3: Control Unit -> Channel)"
+		return "TypeSBToCU <0x1b> (FICON / FC-SB-3: Control Unit -> Channel)"
 	case 0x1c:
-		return "TypeSBFromCU  <0x1c> (FICON / FC-SB-3: Channel -> Control Unit)"
+		return "TypeSBFromCU <0x1c> (FICON / FC-SB-3: Channel -> Control Unit)"
 	case 0x20:
-		return "TypeFCCT      <0x20> (TODO)"
+		return "TypeFCCT <0x20> (TODO)"
 	case 0x22:
-		return "TypeSWILS     <0x22> (TODO)"
+		return "TypeSWILS <0x22> (TODO)"
 	case 0x23:
-		return "TypeAL        <0x23> (TODO)"
+		return "TypeAL <0x23> (TODO)"
 	case 0x24:
-		return "TypeSNMP      <0x24> (TODO)"
+		return "TypeSNMP <0x24> (TODO)"
 	case 0x28:
-		return "TypeNVME      <0x28> (TODO)"
+		return "TypeNVME <0x28> (TODO)"
 	case 0xee:
-		return "TypeSPINFAB   <0xee> (TODO)"
+		return "TypeSPINFAB <0xee> (TODO)"
 	case 0xef:
-		return "TypeDIAG      <0xef> (TODO)"
+		return "TypeDIAG <0xef> (TODO)"
 	default:
 		return fmt.Sprintf("--Invalid Enum Value-- <0x%x>", *o)
 	}

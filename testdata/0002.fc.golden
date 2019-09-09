@@ -9,7 +9,7 @@
  SourceID: ([3]uint8) (len=3 cap=3) {
   00000000  02 0f 00                                          |...|
  },
- fcType: (fibrechannel.Type) TypeELS       <0x1> (TODO),
+ fcType: (fibrechannel.Type) TypeELS <0x1> (TODO),
  FCtl: (fibrechannel.FrameControl) {
   TODO1: (int) 10,
   PriorityEnable: (bool) true,
