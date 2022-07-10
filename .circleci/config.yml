@@ -14,7 +14,6 @@ jobs:
   clean-code:
     docker:
       - image: cimg/go:1.18
-    working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
       - run:
@@ -34,7 +33,6 @@ jobs:
   test:
     docker:
       - image: cimg/go:1.18
-    working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
       - run:
@@ -45,7 +43,6 @@ jobs:
   race:
     docker:
       - image: cimg/go:1.18
-    working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
       - run:
