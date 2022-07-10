@@ -105,7 +105,7 @@ func (t *BitStruct) Deser(p Context, m string) ([]Statement, error) {
 	stmt += " _io.Read(bs[:])\n if _io.Error != nil { return _io.Pos, _io.Error }\n"
 	for _, f := range t.fields {
 		expr := "0"
-		for i, _ := range f.masks {
+		for i := range f.masks {
 			expr += fmt.Sprintf("| int(bs[%d] & 0x%x) << %d", f.bytes[i], f.masks[i], f.shifts[i])
 		}
 		if f.isbool {
