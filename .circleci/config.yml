@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run:
           name: Install ineffassign
-          command: go get github.com/gordonklaus/ineffassign
+          command: go install github.com/gordonklaus/ineffassign@latest
       - run:
           name: vet
           command: |
