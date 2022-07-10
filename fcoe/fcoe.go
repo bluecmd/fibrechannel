@@ -2,14 +2,11 @@ package fcoe
 
 import (
 	"encoding/binary"
+	"errors"
 	"hash/crc32"
 	"io"
 
 	fc "github.com/bluecmd/fibrechannel"
-)
-
-const (
-	EtherType uint16 = 0x8906
 )
 
 var (
@@ -55,12 +52,12 @@ func (f *Frame) UnmarshalBinary(b []byte) error {
 	f.Version = int(b[0])
 	f.SOF, ok = sofMap[b[13]]
 	if !ok {
-		return fc.ErrInvalidSOF
+		return errors.New("invalid SOF")
 	}
 	f.Payload = b[14 : len(b)-8]
 	f.EOF, ok = eofMap[b[len(b)-4]]
 	if !ok {
-		return fc.ErrInvalidEOF
+		return errors.New("invalid EOF")
 	}
 	f.CRC32 = binary.BigEndian.Uint32(b[len(b)-8 : len(b)-4])
 	return nil

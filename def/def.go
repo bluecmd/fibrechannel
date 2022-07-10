@@ -14,49 +14,49 @@ func main() {
 		Name: "SOF",
 		Size: 1 * e.Bytes,
 		Values: map[string]e.Constant{
-			"SOFf":  e.Constant{0x1, "TODO"},
-			"SOFi4": e.Constant{0x2, "TODO"},
-			"SOFi2": e.Constant{0x3, "TODO"},
-			"SOFi3": e.Constant{0x4, "TODO"},
-			"SOFn4": e.Constant{0x5, "TODO"},
-			"SOFn2": e.Constant{0x6, "TODO"},
-			"SOFn3": e.Constant{0x7, "TODO"},
-			"SOFc4": e.Constant{0x8, "TODO"},
+			"SOFf":  {Value: 0x1, Comment: "TODO"},
+			"SOFi4": {Value: 0x1, Comment: "TODO"},
+			"SOFi2": {Value: 0x1, Comment: "TODO"},
+			"SOFi3": {Value: 0x1, Comment: "TODO"},
+			"SOFn4": {Value: 0x1, Comment: "TODO"},
+			"SOFn2": {Value: 0x1, Comment: "TODO"},
+			"SOFn3": {Value: 0x1, Comment: "TODO"},
+			"SOFc4": {Value: 0x1, Comment: "TODO"},
 		}}
 
 	eof := &e.Enum{
 		Name: "EOF",
 		Size: 1 * e.Bytes,
 		Values: map[string]e.Constant{
-			"EOFn":   e.Constant{0x1, "TODO"},
-			"EOFt":   e.Constant{0x2, "TODO"},
-			"EOFrt":  e.Constant{0x3, "TODO"},
-			"EOFdt":  e.Constant{0x4, "TODO"},
-			"EOFni":  e.Constant{0x5, "TODO"},
-			"EOFdti": e.Constant{0x6, "TODO"},
-			"EOFrti": e.Constant{0x7, "TODO"},
-			"EOFa":   e.Constant{0x8, "TODO"},
+			"EOFn":   {Value: 0x1, Comment: "TODO"},
+			"EOFt":   {Value: 0x1, Comment: "TODO"},
+			"EOFrt":  {Value: 0x1, Comment: "TODO"},
+			"EOFdt":  {Value: 0x1, Comment: "TODO"},
+			"EOFni":  {Value: 0x1, Comment: "TODO"},
+			"EOFdti": {Value: 0x1, Comment: "TODO"},
+			"EOFrti": {Value: 0x1, Comment: "TODO"},
+			"EOFa":   {Value: 0x1, Comment: "TODO"},
 		}}
 
 	t := &e.Enum{
 		Name: "Type",
 		Size: 1 * e.Bytes,
 		Values: map[string]e.Constant{
-			"TypeBLS":      e.Constant{0x00, "TODO"},
-			"TypeELS":      e.Constant{0x01, "TODO"},
-			"TypeLLCSNAP":  e.Constant{0x04, "TODO"},
-			"TypeIP":       e.Constant{0x05, "TODO"},
-			"TypeFCP":      e.Constant{0x08, "TODO"},
-			"TypeGPP":      e.Constant{0x09, "TODO"},
-			"TypeSBToCU":   e.Constant{0x1B, "FICON / FC-SB-3: Control Unit -> Channel"},
-			"TypeSBFromCU": e.Constant{0x1C, "FICON / FC-SB-3: Channel -> Control Unit"},
-			"TypeFCCT":     e.Constant{0x20, "TODO"},
-			"TypeSWILS":    e.Constant{0x22, "TODO"},
-			"TypeAL":       e.Constant{0x23, "TODO"},
-			"TypeSNMP":     e.Constant{0x24, "TODO"},
-			"TypeNVME":     e.Constant{0x28, "TODO"},
-			"TypeSPINFAB":  e.Constant{0xEE, "TODO"},
-			"TypeDIAG":     e.Constant{0xEF, "TODO"},
+			"TypeBLS":      {Value: 0x1, Comment: "TODO"},
+			"TypeELS":      {Value: 0x1, Comment: "TODO"},
+			"TypeLLCSNAP":  {Value: 0x1, Comment: "TODO"},
+			"TypeIP":       {Value: 0x1, Comment: "TODO"},
+			"TypeFCP":      {Value: 0x1, Comment: "TODO"},
+			"TypeGPP":      {Value: 0x1, Comment: "TODO"},
+			"TypeSBToCU":   {Value: 0x1B, Comment: "FICON / FC-SB-3: Control Unit -> Channel"},
+			"TypeSBFromCU": {Value: 0x1C, Comment: "FICON / FC-SB-3: Channel -> Control Unit"},
+			"TypeFCCT":     {Value: 0x1, Comment: "TODO"},
+			"TypeSWILS":    {Value: 0x1, Comment: "TODO"},
+			"TypeAL":       {Value: 0x1, Comment: "TODO"},
+			"TypeSNMP":     {Value: 0x1, Comment: "TODO"},
+			"TypeNVME":     {Value: 0x1, Comment: "TODO"},
+			"TypeSPINFAB":  {Value: 0x1, Comment: "TODO"},
+			"TypeDIAG":     {Value: 0x1, Comment: "TODO"},
 		}}
 
 	fctl := e.NewBitStruct("FrameControl")
@@ -71,20 +71,24 @@ func main() {
 	// an Nx_Port is unidentified. When a PN_Port completes Link Initialization,
 	// it shall be unidentified (i.e., it shall have a single Nx_Port for which
 	// the N_Port_ID is 00 00 00h).
-	fc.Field("DestinationID", &e.ByteArray{3})
+	fc.Field("DestinationID", &e.ByteArray{Count: 3})
 
 	csctl := e.NewStruct("CSCtl")
 	csctl.Field("Data", e.Uint8)
 	prio := e.NewStruct("Prio")
 	prio.Field("Data", e.Uint8)
 
-	csctlPrio := &e.SwitchedType{"CsctlPriority", 1 * e.Bytes, prioen, map[string]e.Type{
-		"false": csctl,
-		"true":  prio,
-	}}
+	csctlPrio := &e.SwitchedType{
+		Name:       "CsctlPriority",
+		Size:       1 * e.Bytes,
+		SwitchedOn: prioen,
+		Cases: map[string]e.Type{
+			"false": csctl,
+			"true":  prio,
+		}}
 	fc.Field("CsctlPriority", csctlPrio)
 
-	fc.Field("SourceID", &e.ByteArray{3})
+	fc.Field("SourceID", &e.ByteArray{Count: 3})
 
 	ftype := fc.Field("fcType", t)
 
@@ -111,11 +115,15 @@ func main() {
 	// RX_ID mechanism.
 	fc.Field("RXID", e.Uint16)
 
-	fc.Field("Parameters", &e.ByteArray{4})
+	fc.Field("Parameters", &e.ByteArray{Count: 4})
 
-	payload := &e.SwitchedType{"Payload", e.RemainingBytes, ftype, map[string]e.Type{
-		"TypeELS": &e.Object{"els.Frame"},
-	}}
+	payload := &e.SwitchedType{
+		Name:       "Payload",
+		Size:       e.RemainingBytes,
+		SwitchedOn: ftype,
+		Cases: map[string]e.Type{
+			"TypeELS": &e.Object{Class: "els.Frame"},
+		}}
 	fc.Field("Payload", payload)
 
 	imports := []string{
@@ -123,8 +131,10 @@ func main() {
 	}
 	b, err := e.Generate("fibrechannel", imports, fc, sof, eof)
 	if err != nil {
-		os.Stdout.Write(b)
 		log.Fatalf("Generate failed: %v", err)
 	}
-	os.Stdout.Write(b)
+	_, err = os.Stdout.Write(b)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
