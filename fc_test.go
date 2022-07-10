@@ -29,7 +29,7 @@ func BenchmarkUnmarshal(b *testing.B) {
 	buf := bytes.NewReader(bytes.Repeat([]byte{0}, 28))
 	f := new(Frame)
 	for n := 0; n < b.N; n++ {
-		buf.Seek(0, io.SeekStart)
+		_, _ = buf.Seek(0, io.SeekStart)
 		_, err := f.ReadFrom(buf)
 		if err != nil {
 			b.Fatalf("err: %v", err)
