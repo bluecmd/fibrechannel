@@ -4,14 +4,14 @@ import (
 	"log"
 	"os"
 
-	e "github.com/bluecmd/fibrechannel/encoding"
+	. "github.com/bluecmd/fibrechannel/encoding"
 )
 
-func defPLOGI() e.Type {
-	plogi := e.NewStruct("PLOGI")
-	plogi.Field("", &e.Skip{3 * e.Bytes})
+func defPLOGI() Type {
+	plogi := NewStruct("PLOGI")
+	plogi.Field("", &Skip{Size: 3 * Bytes})
 
-	common := e.NewBitStruct("PLOGICommonSvcParams")
+	common := NewBitStruct("PLOGICommonSvcParams")
 
 	// Word 0
 	common.IntField("FCPHVersion", 16) // 31-16
@@ -49,44 +49,44 @@ func defPLOGI() e.Type {
 	// Word 3
 	common.IntField("EDTOV", 32)
 
-	class := e.NewStruct("PLOGIClassSvcParams")
-	class.Field("Service", e.Uint16)
-	class.Field("Initiator", e.Uint16)
-	class.Field("Recipient", e.Uint16)
-	class.Field("ReceiveDataFieldSize", &e.Unsigned{12 * e.Bits})
-	class.Field("", &e.Skip{1 * e.Bytes})
-	class.Field("ConcurrentSeq", e.Uint8)
-	class.Field("E2ECredits", e.Uint16)
-	class.Field("", &e.Skip{1 * e.Bytes})
-	class.Field("OpenSeqPerExch", e.Uint8)
-	class.Field("", &e.Skip{2 * e.Bytes})
+	class := NewStruct("PLOGIClassSvcParams")
+	class.Field("Service", Uint16)
+	class.Field("Initiator", Uint16)
+	class.Field("Recipient", Uint16)
+	class.Field("ReceiveDataFieldSize", &Unsigned{Size: 12 * Bits})
+	class.Field("", &Skip{Size: 1 * Bytes})
+	class.Field("ConcurrentSeq", Uint8)
+	class.Field("E2ECredits", Uint16)
+	class.Field("", &Skip{Size: 1 * Bytes})
+	class.Field("OpenSeqPerExch", Uint8)
+	class.Field("", &Skip{Size: 2 * Bytes})
 
 	plogi.Field("CommonSvcParams", common)
-	plogi.Field("PortName", &e.Object{"common.WWN"})
-	plogi.Field("NodeName", &e.Object{"common.WWN"})
-	plogi.Field("ClassSvcParams", &e.Array{3, class})
+	plogi.Field("PortName", &Object{Class: "common.WWN"})
+	plogi.Field("NodeName", &Object{Class: "common.WWN"})
+	plogi.Field("ClassSvcParams", &Array{Count: 3, Type: class})
 	plogi.Field("AuxSvcParams", class)
-	plogi.Field("VendorVersion", &e.ByteArray{16})
+	plogi.Field("VendorVersion", &ByteArray{Count: 16})
 
 	return plogi
 }
 
 func main() {
-	els := e.NewStruct("Frame")
+	els := NewStruct("Frame")
 
-	rctl := &e.Enum{
+	rctl := &Enum{
 		Name: "Route",
-		Size: 1 * e.Bytes,
-		Values: map[string]e.Constant{
+		Size: 1 * Bytes,
+		Values: map[string]Constant{
 			"RouteSolicited": {Value: 0x1, Comment: "Solicited ELS"},
 			"RouteRequest":   {Value: 0x1, Comment: "ELS Request"},
 			"RouteReply":     {Value: 0x1, Comment: "ELS Reply"},
 		}}
 
-	cmd := &e.Enum{
+	cmd := &Enum{
 		Name: "Command",
-		Size: 1 * e.Bytes,
-		Values: map[string]e.Constant{
+		Size: 1 * Bytes,
+		Values: map[string]Constant{
 			"CmdLSRJT":     {Value: 0x1, Comment: "ESL reject"},
 			"CmdLSACC":     {Value: 0x1, Comment: "ESL Accept"},
 			"CmdPLOGI":     {Value: 0x1, Comment: "N_Port login"},
@@ -153,15 +153,20 @@ func main() {
 
 	fcmd := els.Field("cmd", cmd)
 
-	payload := &e.SwitchedType{"Payload", e.RemainingBytes, fcmd, map[string]e.Type{
-		"CmdPLOGI": plogi,
-	}}
+	var payload = &SwitchedType{
+		Name:       "Payload",
+		Size:       RemainingBytes,
+		SwitchedOn: fcmd,
+		Cases: map[string]Type{
+			"CmdPLOGI": plogi,
+		},
+	}
 	els.Field("Payload", payload)
 
 	imports := []string{
 		"github.com/bluecmd/fibrechannel/common",
 	}
-	b, err := e.Generate("els", imports, els, rctl, plogi)
+	b, err := Generate("els", imports, els, rctl, plogi)
 	if err != nil {
 		log.Fatalf("Generate failed: %v", err)
 	}
