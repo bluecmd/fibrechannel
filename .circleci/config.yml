@@ -13,7 +13,7 @@ workflows:
 jobs:
   clean-code:
     docker:
-      - image: circleci/golang:1.18
+      - image: cimg/go:1.18
     working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
@@ -33,7 +33,7 @@ jobs:
           command: ineffassign .
   test:
     docker:
-      - image: circleci/golang:1.18
+      - image: cimg/go:1.18
     working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
@@ -44,7 +44,7 @@ jobs:
             go test ./...
   race:
     docker:
-      - image: circleci/golang:1.12
+      - image: cimg/go:1.18
     working_directory: /go/src/github.com/bluecmd/fibrechannel
     steps:
       - checkout
